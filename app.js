@@ -441,9 +441,12 @@ const UI = {
     body.innerHTML = ''; thDates.innerHTML = '<th rowspan="2" class="sticky left-0 !bg-green-700 !text-white !p-4 text-left">Esploratore</th>'; thNames.innerHTML='';
 
     // headers
+    const totalScouts = this.state.scouts.length;
     this.state.activities.forEach(a => {
+      const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
+      const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data}</th>`);
-      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}</th>`);
+      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
     });
 
     // rows
