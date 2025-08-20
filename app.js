@@ -204,6 +204,7 @@ const UI = {
     this.renderScouts();
     this.renderStaff();
     this.renderPresenceTable();
+    this.initMobilePresenceNav();
     this.renderCalendar();
 
     // Listeners
@@ -339,6 +340,62 @@ const UI = {
 
     // Export globally helpers used in HTML onclick
     window.UI = UI;
+  },
+
+  initMobilePresenceNav() {
+    const picker = this.qs('mobileActivityPicker');
+    const btnPrev = this.qs('mobileActivityPrev');
+    const btnNext = this.qs('mobileActivityNext');
+    const container = document.getElementById('presenceTableContainer');
+    if (!picker || !btnPrev || !btnNext || !container) return;
+    const isMobile = () => window.matchMedia('(max-width: 640px)').matches;
+
+    const populate = () => {
+      picker.innerHTML = '';
+      this.state.activities.forEach((a, idx) => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = `${a.data} — ${a.tipo}`;
+        opt.dataset.index = String(idx);
+        picker.appendChild(opt);
+      });
+      picker.selectedIndex = 0;
+    };
+
+    const scrollToIndex = (index) => {
+      const thDates = document.querySelectorAll('#tableHeaderDates th');
+      const targetTh = thDates[index + 1];
+      if (!targetTh) return;
+      const rect = targetTh.getBoundingClientRect();
+      const contRect = container.getBoundingClientRect();
+      const current = container.scrollLeft;
+      const delta = (rect.left - contRect.left) + current - 16;
+      container.scrollTo({ left: Math.max(0, delta), behavior: 'smooth' });
+    };
+
+    populate();
+    picker.addEventListener('change', () => {
+      const idx = picker.selectedIndex;
+      if (idx >= 0) scrollToIndex(idx);
+    });
+    btnPrev.addEventListener('click', () => {
+      if (!isMobile()) return;
+      const idx = Math.max(0, picker.selectedIndex - 1);
+      picker.selectedIndex = idx;
+      scrollToIndex(idx);
+    });
+    btnNext.addEventListener('click', () => {
+      if (!isMobile()) return;
+      const idx = Math.min(this.state.activities.length - 1, picker.selectedIndex + 1);
+      picker.selectedIndex = idx;
+      scrollToIndex(idx);
+    });
+
+    this._scrollToSelectedActivity = () => {
+      if (!isMobile()) return;
+      const idx = picker.selectedIndex >= 0 ? picker.selectedIndex : 0;
+      scrollToIndex(idx);
+    };
   },
 
   setupTabs() {
@@ -546,6 +603,7 @@ const UI = {
       row += `</tr>`;
       body.insertAdjacentHTML('beforeend', row);
     });
+    this._scrollToSelectedActivity && this._scrollToSelectedActivity();
   },
 
   // ---- Dashboard ----

@@ -43,9 +43,11 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 
 /* Mobile friendly cards for presenze (optional: could be toggled) */
 @media (max-width: 640px) {
-  .presence-table thead { display:none; }
-  .presence-table, .presence-table tbody, .presence-table tr, .presence-table td { display:block; width:100%; }
-  .presence-table tr { margin-bottom: .75rem; border:1px solid #e5e7eb; border-radius:.5rem; overflow:hidden; }
-  .presence-table td { border:none; border-bottom:1px solid #e5e7eb; }
-  .presence-table td:last-child { border-bottom:none; }
+  /* Manteniamo la tabella intera; aggiungiamo solo controlli mobile */
+  .mobile-only { display:flex; }
+}
+
+/* Desktop: nascondi i controlli mobile */
+@media (min-width: 641px) {
+  .mobile-only { display:none; }
 }
