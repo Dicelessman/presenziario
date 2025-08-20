@@ -443,13 +443,18 @@ const UI = {
     // headers
     this.state.activities.forEach(a => {
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data}</th>`);
-      const label = `${a.tipo}${a.descrizione ? ': ' + a.descrizione : ''}`;
-      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${label}</th>`);
+      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}</th>`);
     });
 
     // rows
-    this.state.scouts.forEach(s => {
-      let row = `<tr><td class="p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0">${s.nome} ${s.cognome}</td>`;
+    const sortedScouts = [...this.state.scouts].sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    sortedScouts.forEach(s => {
+      const totalActs = this.state.activities.length;
+      const presentCount = this.state.presences.filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
+      const perc = totalActs ? Math.round((presentCount / totalActs) * 100) : 0;
+      let row = `<tr><td class="p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0">${s.nome} ${s.cognome}
+        <div class="text-xs font-normal text-gray-500">${presentCount} / ${totalActs} (${perc}%)</div>
+      </td>`;
       this.state.activities.forEach(a => {
         const presence = this.state.presences.find(p => p.esploratoreId === s.id && p.attivitaId === a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = this.selectedStaffId ? '' : 'disabled';
