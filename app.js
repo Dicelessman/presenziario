@@ -186,20 +186,42 @@ const UI = {
   closeModal(id){ this.qs(id).classList.remove('show'); },
 
   async init() {
-    // Toggle Firestore by enabling the next line after adding firebaseConfig:
-    DATA.useFirestore();
+    try {
+      // Toggle Firestore by enabling the next line after adding firebaseConfig:
+      DATA.useFirestore();
 
-    // Load state
-    this.state = await DATA.loadAll();
+      // Load state
+      this.state = await DATA.loadAll();
+      console.log('Loaded state:', this.state);
+      
+      // Ensure state has all required properties
+      this.state = {
+        scouts: this.state.scouts || [],
+        staff: this.state.staff || [],
+        activities: this.state.activities || [],
+        presences: this.state.presences || []
+      };
+    
     // Convert string dates to Date objects if needed (for backward compatibility)
     this.state.activities.forEach(a => {
       if (typeof a.data === 'string') {
-        const [d, m, y] = a.data.split('/');
-        a.data = new Date(`${y}-${m}-${d}`);
+        try {
+          const [d, m, y] = a.data.split('/');
+          a.data = new Date(`${y}-${m}-${d}`);
+          console.log(`Converted date: ${a.data} -> ${a.data.toISOString()}`);
+        } catch (error) {
+          console.error(`Error converting date ${a.data}:`, error);
+          // Fallback: keep as string for now
+        }
       }
     });
-    // Sort activities by date
-    this.state.activities.sort((a, b) => a.data - b.data);
+    
+    // Sort activities by date (handle both Date objects and strings)
+    this.state.activities.sort((a, b) => {
+      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
+      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
+      return dateA - dateB;
+    });
 
     // Tabs
     this.setupTabs();
@@ -335,6 +357,11 @@ const UI = {
 
     // Export globally helpers used in HTML onclick
     window.UI = UI;
+    
+    } catch (error) {
+      console.error('Error during initialization:', error);
+      alert('Errore durante l\'inizializzazione dell\'app. Controlla la console per i dettagli.');
+    }
   },
 
   initMobilePresenceNav() {
@@ -351,7 +378,8 @@ const UI = {
       acts.forEach((a, idx) => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        opt.textContent = `${a.data.toLocaleDateString('it-IT')} — ${a.tipo}`;
+        const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+        opt.textContent = `${displayDate} — ${a.tipo}`;
         opt.dataset.index = String(idx);
         picker.appendChild(opt);
       });
@@ -395,7 +423,11 @@ const UI = {
   },
 
   getActivitiesSorted() {
-    return [...this.state.activities].sort((a, b) => a.data - b.data);
+    return [...this.state.activities].sort((a, b) => {
+      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
+      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
+      return dateA - dateB;
+    });
   },
 
   setupTabs() {
@@ -424,7 +456,11 @@ const UI = {
     }
 
     // Ordina le attività per data
-    const sortedActivities = [...this.state.activities].sort((a, b) => a.data - b.data);
+    const sortedActivities = [...this.state.activities].sort((a, b) => {
+      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
+      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
+      return dateA - dateB;
+    });
 
     // Trova la prossima attività (prima data futura o oggi)
     const today = new Date();
@@ -432,7 +468,8 @@ const UI = {
     let nextActivityId = null;
     
     for (const a of sortedActivities) {
-      if (a.data >= today) {
+      const activityDate = a.data instanceof Date ? a.data : new Date(a.data);
+      if (activityDate >= today) {
         nextActivityId = a.id;
         break;
       }
@@ -444,10 +481,11 @@ const UI = {
       const bgClass = isNext ? 'bg-green-50 border-l-4 border-green-500' : 'bg-white';
       const textClass = isNext ? 'text-green-800' : 'text-green-700';
       
+      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
       list.insertAdjacentHTML('beforeend', `
         <div class="p-4 ${bgClass} rounded-lg shadow-sm flex items-start justify-between gap-4">
           <div>
-            <p class="font-medium text-lg ${textClass}">${a.tipo} — ${a.data.toLocaleDateString('it-IT')}${isNext ? ' (Prossima)' : ''}</p>
+            <p class="font-medium text-lg ${textClass}">${a.tipo} — ${displayDate}${isNext ? ' (Prossima)' : ''}</p>
             <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
           </div>
           <div class="flex gap-2">
@@ -463,7 +501,8 @@ const UI = {
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.qs('editActivityId').value = a.id;
     this.qs('editActivityTipo').value = a.tipo;
-    this.qs('editActivityData').value = a.data.toISOString().split('T')[0];
+    const editDate = a.data instanceof Date ? a.data.toISOString().split('T')[0] : a.data;
+    this.qs('editActivityData').value = editDate;
     this.qs('editActivityDescrizione').value = a.descrizione;
     this.qs('editActivityCosto').value = a.costo || '';
     this.showModal('editActivityModal');
@@ -471,7 +510,8 @@ const UI = {
   confirmDeleteActivity(id) {
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.activityToDeleteId = id;
-    const info = `${a.tipo} — ${a.data.toLocaleDateString('it-IT')}${a.descrizione ? ' — ' + a.descrizione : ''}`;
+    const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+    const info = `${a.tipo} — ${displayDate}${a.descrizione ? ' — ' + a.descrizione : ''}`;
     const el = this.qs('activityInfoToDelete'); if (el) el.textContent = info;
     this.showModal('confirmDeleteActivityModal');
   },
@@ -583,7 +623,8 @@ const UI = {
     acts.forEach(a => {
       const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
-      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data.toLocaleDateString('it-IT')}</th>`);
+      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${displayDate}</th>`);
       thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
     });
 
@@ -652,7 +693,10 @@ const UI = {
       }
     });
 
-    const actLabels = activities.map(a => `${a.tipo}: ${a.descrizione}\n${a.data.toLocaleDateString('it-IT')}`);
+    const actLabels = activities.map(a => {
+      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+      return `${a.tipo}: ${a.descrizione}\n${displayDate}`;
+    });
     const actData = activities.map(a => presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
     const ctx2 = document.getElementById('activityPresenceChart').getContext('2d');
     this.charts.activity = new Chart(ctx2, {
