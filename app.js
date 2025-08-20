@@ -84,14 +84,14 @@ class LocalAdapter {
 // FirestoreAdapter: fill firebaseConfig and use DATA.useFirestore()
 class FirestoreAdapter {
   constructor() {
-    // TODO: replace with your Firebase project config
+    // Firebase config
     const firebaseConfig = {
-      // apiKey: "...",
-      // authDomain: "...",
-      // projectId: "...",
-      // storageBucket: "...",
-      // messagingSenderId: "...",
-      // appId: "...",
+      apiKey: "AIzaSyAoa8Rrlplr001PitiFrqBkrbEWL3TWrL4",
+      authDomain: "presenziariomaori.firebaseapp.com",
+      projectId: "presenziariomaori",
+      storageBucket: "presenziariomaori.firebasestorage.app",
+      messagingSenderId: "556210165397",
+      appId: "1:556210165397:web:4f434e78fb97f02d116d9c"
     };
     this.app = initializeApp(firebaseConfig);
     this.db = getFirestore(this.app);
@@ -159,8 +159,8 @@ const UI = {
   closeModal(id){ this.qs(id).classList.remove('show'); },
 
   async init() {
-    // Toggle Firestore by uncommenting next line after adding firebaseConfig:
-    // DATA.useFirestore();
+    // Toggle Firestore by enabling the next line after adding firebaseConfig:
+    DATA.useFirestore();
 
     // Load state
     this.state = await DATA.loadAll();
