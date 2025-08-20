@@ -22,10 +22,10 @@ class LocalAdapter {
         { id: 'st2', nome: 'Marco', cognome: 'Gallo' }
       ],
       activities: saved.activities || [
-        { id: 'a1', tipo: 'Uscita', data: '18/08/2024', descrizione: 'Uscita al lago', costo: '10' },
-        { id: 'a2', tipo: 'Riunione', data: '25/08/2024', descrizione: 'Riunione settimanale', costo: '0' },
-        { id: 'a3', tipo: 'Attività lunga', data: '01/09/2024', descrizione: 'Escursione in montagna', costo: '5' },
-        { id: 'a4', tipo: 'Campo', data: '15/07/2024', descrizione: 'Campo Estivo', costo: '150' }
+        { id: 'a1', tipo: 'Uscita', data: new Date('2024-08-18'), descrizione: 'Uscita al lago', costo: '10' },
+        { id: 'a2', tipo: 'Riunione', data: new Date('2024-08-25'), descrizione: 'Riunione settimanale', costo: '0' },
+        { id: 'a3', tipo: 'Attività lunga', data: new Date('2024-09-01'), descrizione: 'Escursione in montagna', costo: '5' },
+        { id: 'a4', tipo: 'Campo', data: new Date('2024-07-15'), descrizione: 'Campo Estivo', costo: '150' }
       ],
       presences: saved.presences || [
         { esploratoreId: 's1', attivitaId: 'a1', stato: 'Presente', pagato: true, tipoPagamento: 'Contanti' },
@@ -191,11 +191,15 @@ const UI = {
 
     // Load state
     this.state = await DATA.loadAll();
-    // Sort activities by date once
-    this.state.activities.sort((a, b) => {
-      const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
-      return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+    // Convert string dates to Date objects if needed (for backward compatibility)
+    this.state.activities.forEach(a => {
+      if (typeof a.data === 'string') {
+        const [d, m, y] = a.data.split('/');
+        a.data = new Date(`${y}-${m}-${d}`);
+      }
     });
+    // Sort activities by date
+    this.state.activities.sort((a, b) => a.data - b.data);
 
     // Tabs
     this.setupTabs();
@@ -238,16 +242,13 @@ const UI = {
       addActivityForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const tipo = this.qs('activityTipo').value;
-        const data = this.qs('activityData').value.trim();
+        const data = new Date(this.qs('activityData').value);
         const descrizione = this.qs('activityDescrizione').value.trim();
         const costo = this.qs('activityCosto').value.trim() || '0';
         if (!tipo || !data || !descrizione) return;
         await DATA.addActivity({ tipo, data, descrizione, costo });
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => {
-          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
-          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-        });
+        this.state.activities.sort((a, b) => a.data - b.data);
         this.renderPresenceTable();
         this.renderCalendar && this.renderCalendar();
         this.renderDashboard();
@@ -261,17 +262,14 @@ const UI = {
         e.preventDefault();
         const id = this.qs('editActivityId').value;
         const tipo = this.qs('editActivityTipo').value;
-        const data = this.qs('editActivityData').value.trim();
+        const data = new Date(this.qs('editActivityData').value);
         const descrizione = this.qs('editActivityDescrizione').value.trim();
         const costo = this.qs('editActivityCosto').value.trim() || '0';
         if (!id || !tipo || !data || !descrizione) return;
         await DATA.updateActivity({ id, tipo, data, descrizione, costo });
         this.closeModal('editActivityModal');
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => {
-          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
-          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-        });
+        this.state.activities.sort((a, b) => a.data - b.data);
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -284,10 +282,7 @@ const UI = {
         this.activityToDeleteId = null;
         this.closeModal('confirmDeleteActivityModal');
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => {
-          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
-          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-        });
+        this.state.activities.sort((a, b) => a.data - b.data);
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -356,7 +351,7 @@ const UI = {
       acts.forEach((a, idx) => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        opt.textContent = `${a.data} — ${a.tipo}`;
+        opt.textContent = `${a.data.toLocaleDateString('it-IT')} — ${a.tipo}`;
         opt.dataset.index = String(idx);
         picker.appendChild(opt);
       });
@@ -400,11 +395,7 @@ const UI = {
   },
 
   getActivitiesSorted() {
-    return [...this.state.activities].sort((a, b) => {
-      const [d1, m1, y1] = a.data.split('/');
-      const [d2, m2, y2] = b.data.split('/');
-      return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-    });
+    return [...this.state.activities].sort((a, b) => a.data - b.data);
   },
 
   setupTabs() {
@@ -433,11 +424,7 @@ const UI = {
     }
 
     // Ordina le attività per data
-    const sortedActivities = [...this.state.activities].sort((a, b) => {
-      const [d1, m1, y1] = a.data.split('/');
-      const [d2, m2, y2] = b.data.split('/');
-      return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-    });
+    const sortedActivities = [...this.state.activities].sort((a, b) => a.data - b.data);
 
     // Trova la prossima attività (prima data futura o oggi)
     const today = new Date();
@@ -445,9 +432,7 @@ const UI = {
     let nextActivityId = null;
     
     for (const a of sortedActivities) {
-      const [d, m, y] = a.data.split('/');
-      const activityDate = new Date(`${y}-${m}-${d}`);
-      if (activityDate >= today) {
+      if (a.data >= today) {
         nextActivityId = a.id;
         break;
       }
@@ -462,7 +447,7 @@ const UI = {
       list.insertAdjacentHTML('beforeend', `
         <div class="p-4 ${bgClass} rounded-lg shadow-sm flex items-start justify-between gap-4">
           <div>
-            <p class="font-medium text-lg ${textClass}">${a.tipo} — ${a.data}${isNext ? ' (Prossima)' : ''}</p>
+            <p class="font-medium text-lg ${textClass}">${a.tipo} — ${a.data.toLocaleDateString('it-IT')}${isNext ? ' (Prossima)' : ''}</p>
             <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
           </div>
           <div class="flex gap-2">
@@ -478,7 +463,7 @@ const UI = {
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.qs('editActivityId').value = a.id;
     this.qs('editActivityTipo').value = a.tipo;
-    this.qs('editActivityData').value = a.data;
+    this.qs('editActivityData').value = a.data.toISOString().split('T')[0];
     this.qs('editActivityDescrizione').value = a.descrizione;
     this.qs('editActivityCosto').value = a.costo || '';
     this.showModal('editActivityModal');
@@ -486,7 +471,7 @@ const UI = {
   confirmDeleteActivity(id) {
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.activityToDeleteId = id;
-    const info = `${a.tipo} — ${a.data}${a.descrizione ? ' — ' + a.descrizione : ''}`;
+    const info = `${a.tipo} — ${a.data.toLocaleDateString('it-IT')}${a.descrizione ? ' — ' + a.descrizione : ''}`;
     const el = this.qs('activityInfoToDelete'); if (el) el.textContent = info;
     this.showModal('confirmDeleteActivityModal');
   },
@@ -598,7 +583,7 @@ const UI = {
     acts.forEach(a => {
       const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
-      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data}</th>`);
+      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data.toLocaleDateString('it-IT')}</th>`);
       thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
     });
 
@@ -667,7 +652,7 @@ const UI = {
       }
     });
 
-    const actLabels = activities.map(a => `${a.tipo}: ${a.descrizione}\n${a.data}`);
+    const actLabels = activities.map(a => `${a.tipo}: ${a.descrizione}\n${a.data.toLocaleDateString('it-IT')}`);
     const actData = activities.map(a => presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
     const ctx2 = document.getElementById('activityPresenceChart').getContext('2d');
     this.charts.activity = new Chart(ctx2, {
