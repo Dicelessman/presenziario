@@ -20,6 +20,9 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 #hamburgerMenu .tab-btn { width:100%; text-align:left; color:white; }
 #hamburgerMenu .tab-btn.bg-green-600 { background: #16a34a; }
 
+/* Calendar list */
+#calendarList > div { border-left: 4px solid #16a34a; padding-left: .75rem; }
+
 .presence-table { width:100%; border-collapse: separate; border-spacing:0; }
 .presence-table th, .presence-table td { padding:.75rem; border:1px solid #e5e7eb; text-align:center; vertical-align: top; }
 .presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; }

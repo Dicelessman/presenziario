@@ -22,10 +22,10 @@ class LocalAdapter {
         { id: 'st2', nome: 'Marco', cognome: 'Gallo' }
       ],
       activities: saved.activities || [
-        { id: 'a1', nome: 'Uscita al lago', data: '18/08/2024', pagamento: true },
-        { id: 'a2', nome: 'Riunione settimanale', data: '25/08/2024', pagamento: false },
-        { id: 'a3', nome: 'Escursione in montagna', data: '01/09/2024', pagamento: true },
-        { id: 'a4', nome: 'Campo Estivo', data: '15/07/2024', pagamento: true }
+        { id: 'a1', tipo: 'Uscita', data: '18/08/2024', descrizione: 'Uscita al lago', costo: '10' },
+        { id: 'a2', tipo: 'Riunione', data: '25/08/2024', descrizione: 'Riunione settimanale', costo: '0' },
+        { id: 'a3', tipo: 'Attività lunga', data: '01/09/2024', descrizione: 'Escursione in montagna', costo: '5' },
+        { id: 'a4', tipo: 'Campo', data: '15/07/2024', descrizione: 'Campo Estivo', costo: '150' }
       ],
       presences: saved.presences || [
         { esploratoreId: 's1', attivitaId: 'a1', stato: 'Presente', pagato: true, tipoPagamento: 'Contanti' },
@@ -45,6 +45,26 @@ class LocalAdapter {
   }
   persist() { localStorage.setItem('presenziario-state', JSON.stringify(this.state)); }
   async loadAll() { return structuredClone(this.state); }
+  // Activities
+  async addActivity({ tipo, data, descrizione, costo }) {
+    const id = 'a' + (Math.random().toString(36).slice(2, 8));
+    this.state.activities.push({ id, tipo, data, descrizione, costo });
+    // pre-popola presenze per nuovi eventi
+    this.state.scouts.forEach(s => this.state.presences.push({
+      esploratoreId: s.id, attivitaId: id, stato: 'NR', pagato: false, tipoPagamento: null
+    }));
+    this.persist();
+    return id;
+  }
+  async updateActivity({ id, tipo, data, descrizione, costo }) {
+    const a = this.state.activities.find(x => x.id === id);
+    if (a) { a.tipo = tipo; a.data = data; a.descrizione = descrizione; a.costo = costo; this.persist(); }
+  }
+  async deleteActivity(id) {
+    this.state.activities = this.state.activities.filter(a => a.id !== id);
+    this.state.presences = this.state.presences.filter(p => p.attivitaId !== id);
+    this.persist();
+  }
   // Staff
   async addStaff({ nome, cognome }) {
     const id = 'st' + (Math.random().toString(36).slice(2, 8));
@@ -112,6 +132,9 @@ class FirestoreAdapter {
     const presences = presSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     return { scouts, staff, activities, presences };
   }
+  async addActivity({ tipo, data, descrizione, costo }) { const ref = await addDoc(this.cols.activities, { tipo, data, descrizione, costo }); return ref.id; }
+  async updateActivity({ id, tipo, data, descrizione, costo }) { await setDoc(doc(this.db, 'activities', id), { tipo, data, descrizione, costo }, { merge: true }); }
+  async deleteActivity(id) { await deleteDoc(doc(this.db, 'activities', id)); }
   async addStaff({ nome, cognome }) { const ref = await addDoc(this.cols.staff, { nome, cognome }); return ref.id; }
   async updateStaff({ id, nome, cognome }) { await setDoc(doc(this.db, 'staff', id), { nome, cognome }, { merge: true }); }
   async deleteStaff(id) { await deleteDoc(doc(this.db, 'staff', id)); }
@@ -138,6 +161,9 @@ const DATA = {
   adapter: new LocalAdapter(),
   useFirestore() { this.adapter = new FirestoreAdapter(); },
   async loadAll() { return await this.adapter.loadAll(); },
+  async addActivity(p) { return await this.adapter.addActivity(p); },
+  async updateActivity(p) { return await this.adapter.updateActivity(p); },
+  async deleteActivity(id) { return await this.adapter.deleteActivity(id); },
   async addStaff(p) { return await this.adapter.addStaff(p); },
   async updateStaff(p) { return await this.adapter.updateStaff(p); },
   async deleteStaff(id) { return await this.adapter.deleteStaff(id); },
@@ -203,6 +229,28 @@ const UI = {
       this.state = await DATA.loadAll();
       this.renderStaff(); e.target.reset();
     });
+
+    const addActivityForm = this.qs('addActivityForm');
+    if (addActivityForm) {
+      addActivityForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tipo = this.qs('activityTipo').value;
+        const data = this.qs('activityData').value.trim();
+        const descrizione = this.qs('activityDescrizione').value.trim();
+        const costo = this.qs('activityCosto').value.trim() || '0';
+        if (!tipo || !data || !descrizione) return;
+        await DATA.addActivity({ tipo, data, descrizione, costo });
+        this.state = await DATA.loadAll();
+        this.state.activities.sort((a, b) => {
+          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
+          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+        });
+        this.renderPresenceTable();
+        this.renderCalendar && this.renderCalendar();
+        this.renderDashboard();
+        e.target.reset();
+      });
+    }
 
     this.qs('editStaffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -270,6 +318,26 @@ const UI = {
   },
 
   // ---- Rendering ----
+  renderCalendar() {
+    const list = this.qs('calendarList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!this.state.activities.length) {
+      list.innerHTML = '<p class="text-gray-500">Nessuna attività pianificata.</p>';
+      return;
+    }
+    this.state.activities.forEach(a => {
+      const costoLabel = parseFloat(a.costo || '0') > 0 ? ` — Costo: € ${a.costo}` : '';
+      list.insertAdjacentHTML('beforeend', `
+        <div class="p-4 bg-white rounded-lg shadow-sm flex items-start justify-between gap-4">
+          <div>
+            <p class="font-medium text-lg text-green-700">${a.tipo} — ${a.data}</p>
+            <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
+          </div>
+        </div>
+      `);
+    });
+  },
   renderStaff() {
     const list = this.qs('staffList'); const selectList = this.qs('staffListForSelection');
     list.innerHTML = ''; selectList.innerHTML = '';
@@ -362,7 +430,8 @@ const UI = {
     // headers
     this.state.activities.forEach(a => {
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data}</th>`);
-      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.nome}</th>`);
+      const label = `${a.tipo}${a.descrizione ? ': ' + a.descrizione : ''}`;
+      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${label}</th>`);
     });
 
     // rows
@@ -372,6 +441,7 @@ const UI = {
         const presence = this.state.presences.find(p => p.esploratoreId === s.id && p.attivitaId === a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = this.selectedStaffId ? '' : 'disabled';
         const paidDisabled = (!presence.pagato || !this.selectedStaffId) ? 'disabled' : '';
+        const needsPayment = parseFloat(a.costo || '0') > 0;
 
         row += `<td class="p-2 border-r border-b border-gray-200">
           <div class="flex flex-col items-center gap-1">
@@ -380,7 +450,7 @@ const UI = {
               <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
               <option value="NR" ${presence.stato==='NR'?'selected':''}>NR</option>
             </select>
-            ${a.pagamento ? `
+            ${needsPayment ? `
             <div class="payment-section">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" ${presence.pagato?'checked':''} ${disabled}
@@ -428,7 +498,7 @@ const UI = {
       }
     });
 
-    const actLabels = activities.map(a => `${a.nome}\n${a.data}`);
+    const actLabels = activities.map(a => `${a.tipo}: ${a.descrizione}\n${a.data}`);
     const actData = activities.map(a => presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
     const ctx2 = document.getElementById('activityPresenceChart').getContext('2d');
     this.charts.activity = new Chart(ctx2, {
