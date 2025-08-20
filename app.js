@@ -352,7 +352,8 @@ const UI = {
 
     const populate = () => {
       picker.innerHTML = '';
-      this.state.activities.forEach((a, idx) => {
+      const acts = this.getActivitiesSorted();
+      acts.forEach((a, idx) => {
         const opt = document.createElement('option');
         opt.value = a.id;
         opt.textContent = `${a.data} — ${a.tipo}`;
@@ -396,6 +397,14 @@ const UI = {
       const idx = picker.selectedIndex >= 0 ? picker.selectedIndex : 0;
       scrollToIndex(idx);
     };
+  },
+
+  getActivitiesSorted() {
+    return [...this.state.activities].sort((a, b) => {
+      const [d1, m1, y1] = a.data.split('/');
+      const [d2, m2, y2] = b.data.split('/');
+      return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+    });
   },
 
   setupTabs() {
@@ -585,7 +594,8 @@ const UI = {
 
     // headers
     const totalScouts = this.state.scouts.length;
-    this.state.activities.forEach(a => {
+    const acts = this.getActivitiesSorted();
+    acts.forEach(a => {
       const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${a.data}</th>`);
@@ -601,7 +611,7 @@ const UI = {
       let row = `<tr><td class="p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0">${s.nome} ${s.cognome}
         <div class="text-xs font-normal text-gray-500">${presentCount} / ${totalActs} (${perc}%)</div>
       </td>`;
-      this.state.activities.forEach(a => {
+      acts.forEach(a => {
         const presence = this.state.presences.find(p => p.esploratoreId === s.id && p.attivitaId === a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = this.selectedStaffId ? '' : 'disabled';
         const needsPayment = parseFloat(a.costo || '0') > 0;
