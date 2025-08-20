@@ -421,6 +421,19 @@ const UI = {
     this.renderPresenceTable(); this.renderDashboard();
   },
 
+  async updatePaymentCombined({ value, scoutId, activityId }) {
+    if (!this.selectedStaffId) return;
+    if (!value) {
+      await DATA.updatePresence({ field: 'pagato', value: false, scoutId, activityId });
+      await DATA.updatePresence({ field: 'tipoPagamento', value: null, scoutId, activityId });
+    } else {
+      await DATA.updatePresence({ field: 'pagato', value: true, scoutId, activityId });
+      await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId });
+    }
+    this.state = await DATA.loadAll();
+    this.renderPresenceTable(); this.renderDashboard();
+  },
+
   renderPresenceTable() {
     const body = this.qs('presenceTableBody');
     const thDates = this.qs('tableHeaderDates');
@@ -440,7 +453,6 @@ const UI = {
       this.state.activities.forEach(a => {
         const presence = this.state.presences.find(p => p.esploratoreId === s.id && p.attivitaId === a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = this.selectedStaffId ? '' : 'disabled';
-        const paidDisabled = (!presence.pagato || !this.selectedStaffId) ? 'disabled' : '';
         const needsPayment = parseFloat(a.costo || '0') > 0;
 
         row += `<td class="p-2 border-r border-b border-gray-200">
@@ -452,17 +464,12 @@ const UI = {
             </select>
             ${needsPayment ? `
             <div class="payment-section">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" ${presence.pagato?'checked':''} ${disabled}
-                  onchange="UI.updatePresenceCell({field:'pagato', value:this.checked, scoutId:'${s.id}', activityId:'${a.id}'})" />
-                <span>Pagato</span>
-              </label>
-              <select class="payment-select mt-1" ${paidDisabled}
-                onchange="UI.updatePresenceCell({field:'tipoPagamento', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
-                <option value="" ${!presence.tipoPagamento?'selected':''}>- Tipo -</option>
-                <option value="Contanti" ${presence.tipoPagamento==='Contanti'?'selected':''}>Contanti</option>
-                <option value="Bonifico" ${presence.tipoPagamento==='Bonifico'?'selected':''}>Bonifico</option>
-                <option value="Satispay" ${presence.tipoPagamento==='Satispay'?'selected':''}>Satispay</option>
+              <select class="payment-select mt-1" ${disabled}
+                onchange="UI.updatePaymentCombined({value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
+                <option value="" ${!presence.pagato?'selected':''}>Non Pagato</option>
+                <option value="Contanti" ${(presence.pagato && presence.tipoPagamento==='Contanti')?'selected':''}>Contanti</option>
+                <option value="Bonifico" ${(presence.pagato && presence.tipoPagamento==='Bonifico')?'selected':''}>Bonifico</option>
+                <option value="Satispay" ${(presence.pagato && presence.tipoPagamento==='Satispay')?'selected':''}>Satispay</option>
               </select>
             </div>` : ''}
           </div>
