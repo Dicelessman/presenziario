@@ -178,6 +178,7 @@ const UI = {
   selectedStaffId: null,
   staffToDeleteId: null,
   scoutToDeleteId: null,
+  activityToDeleteId: null,
   state: { scouts: [], staff: [], activities: [], presences: [] },
 
   qs(id) { return document.getElementById(id); },
@@ -203,6 +204,7 @@ const UI = {
     this.renderScouts();
     this.renderStaff();
     this.renderPresenceTable();
+    this.renderCalendar();
 
     // Listeners
     document.querySelector('.hamburger-icon').addEventListener('click', () => {
@@ -249,6 +251,43 @@ const UI = {
         this.renderCalendar && this.renderCalendar();
         this.renderDashboard();
         e.target.reset();
+      });
+    }
+
+    const editActivityForm = this.qs('editActivityForm');
+    if (editActivityForm) {
+      editActivityForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = this.qs('editActivityId').value;
+        const tipo = this.qs('editActivityTipo').value;
+        const data = this.qs('editActivityData').value.trim();
+        const descrizione = this.qs('editActivityDescrizione').value.trim();
+        const costo = this.qs('editActivityCosto').value.trim() || '0';
+        if (!id || !tipo || !data || !descrizione) return;
+        await DATA.updateActivity({ id, tipo, data, descrizione, costo });
+        this.closeModal('editActivityModal');
+        this.state = await DATA.loadAll();
+        this.state.activities.sort((a, b) => {
+          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
+          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+        });
+        this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
+      });
+    }
+
+    const confirmDeleteActivityButton = this.qs('confirmDeleteActivityButton');
+    if (confirmDeleteActivityButton) {
+      confirmDeleteActivityButton.addEventListener('click', async () => {
+        if (!this.activityToDeleteId) return;
+        await DATA.deleteActivity(this.activityToDeleteId);
+        this.activityToDeleteId = null;
+        this.closeModal('confirmDeleteActivityModal');
+        this.state = await DATA.loadAll();
+        this.state.activities.sort((a, b) => {
+          const [d1, m1, y1] = a.data.split('/'); const [d2, m2, y2] = b.data.split('/');
+          return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+        });
+        this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
 
@@ -334,9 +373,30 @@ const UI = {
             <p class="font-medium text-lg text-green-700">${a.tipo} — ${a.data}</p>
             <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
           </div>
+          <div class="flex gap-2">
+            <button aria-label="Modifica attività" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditActivityModal('${a.id}')">✏️</button>
+            <button aria-label="Elimina attività" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteActivity('${a.id}')">🗑️</button>
+          </div>
         </div>
       `);
     });
+  },
+
+  openEditActivityModal(id) {
+    const a = this.state.activities.find(x => x.id === id); if (!a) return;
+    this.qs('editActivityId').value = a.id;
+    this.qs('editActivityTipo').value = a.tipo;
+    this.qs('editActivityData').value = a.data;
+    this.qs('editActivityDescrizione').value = a.descrizione;
+    this.qs('editActivityCosto').value = a.costo || '';
+    this.showModal('editActivityModal');
+  },
+  confirmDeleteActivity(id) {
+    const a = this.state.activities.find(x => x.id === id); if (!a) return;
+    this.activityToDeleteId = id;
+    const info = `${a.tipo} — ${a.data}${a.descrizione ? ' — ' + a.descrizione : ''}`;
+    const el = this.qs('activityInfoToDelete'); if (el) el.textContent = info;
+    this.showModal('confirmDeleteActivityModal');
   },
   renderStaff() {
     const list = this.qs('staffList'); const selectList = this.qs('staffListForSelection');
