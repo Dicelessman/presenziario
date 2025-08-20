@@ -33,6 +33,16 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 .payment-select { color:#16a34a; } /* green-600 */
 .payment-section { display:flex; flex-direction:column; align-items:center; margin-top:.5rem; font-size:.875rem; }
 
+/* Colori per le opzioni dei menu a discesa */
+.presence-select option[value="Presente"] { color: #16a34a; } /* verde */
+.presence-select option[value="Assente"] { color: #dc2626; } /* rosso */
+.presence-select option[value="NR"] { color: #2563eb; } /* blu */
+
+.payment-select option[value=""] { color: #dc2626; } /* rosso - Non Pagato */
+.payment-select option[value="Contanti"] { color: #16a34a; } /* verde */
+.payment-select option[value="Satispay"] { color: #ea580c; } /* arancione */
+.payment-select option[value="Bonifico"] { color: #2563eb; } /* blu */
+
 /* Buttons */
 .btn-primary { background:#16a34a; color:white; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; }
 .btn-primary:hover { filter: brightness(.95); }
