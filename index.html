@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scout Maori - Presenziario</title>
+  <meta name="description" content="Registro presenze Reparto Scout Maori" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Scout Maori" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js + Datalabels -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+  <div id="app" class="max-w-4xl mx-auto w-full bg-white shadow-lg rounded-xl overflow-hidden my-4">
+    <!-- Header -->
+    <header class="bg-green-700 text-white p-6 rounded-t-xl flex justify-between items-center">
+      <div class="flex flex-col">
+        <h1 class="text-3xl font-bold">Scout Maori</h1>
+        <p class="text-green-200 mt-1">Registro Presenze</p>
+      </div>
+      <div id="staff-info" class="text-right">
+        <span class="text-green-200">Staff Selezionato:</span>
+        <span id="selectedStaffName" class="font-semibold">Nessuno</span>
+      </div>
+    </header>
+
+    <!-- Nav (Hamburger) -->
+    <nav id="hamburgerMenu" class="bg-green-600">
+      <button class="hamburger-icon text-white p-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div class="nav-links space-y-2">
+        <button id="presenzeTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Presenze</button>
+        <button id="dashboardTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Dashboard</button>
+        <button id="staffTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Staff</button>
+        <button id="scoutsTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Esploratori</button>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="p-6">
+      <!-- Modali -->
+      <div id="staffSelectionModal" class="modal">
+        <div class="modal-content max-w-lg mx-auto">
+          <h4 class="text-xl font-semibold text-gray-700">Seleziona un membro dello Staff</h4>
+          <p class="text-gray-600 mb-4">Seleziona uno staff per abilitare le modifiche.</p>
+          <div id="staffListForSelection" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div id="editStaffModal" class="modal">
+        <div class="modal-content max-w-sm mx-auto">
+          <h4 class="text-xl font-semibold text-gray-700">Modifica Membro Staff</h4>
+          <form id="editStaffForm" class="space-y-4">
+            <input type="hidden" id="editStaffId" />
+            <div>
+              <label for="editStaffNome" class="block text-sm font-medium text-gray-700">Nome</label>
+              <input id="editStaffNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <div>
+              <label for="editStaffCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+              <input id="editStaffCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button type="button" onclick="window.UI.closeModal('editStaffModal')" class="btn-secondary">Annulla</button>
+              <button class="btn-primary">Salva</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="confirmDeleteStaffModal" class="modal">
+        <div class="modal-content max-w-sm mx-auto text-center">
+          <h4 class="text-xl font-semibold text-gray-700">Conferma Eliminazione Staff</h4>
+          <p class="text-gray-600 mb-4">Eliminare <span id="staffNameToDelete" class="font-semibold text-red-600"></span>?</p>
+          <div class="flex gap-2 justify-center">
+            <button onclick="window.UI.closeModal('confirmDeleteStaffModal')" class="btn-secondary">Annulla</button>
+            <button id="confirmDeleteStaffButton" class="btn-danger">Elimina</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="editScoutModal" class="modal">
+        <div class="modal-content max-w-sm mx-auto">
+          <h4 class="text-xl font-semibold text-gray-700">Modifica Esploratore</h4>
+          <form id="editScoutForm" class="space-y-4">
+            <input type="hidden" id="editScoutId" />
+            <div>
+              <label for="editScoutNome" class="block text-sm font-medium text-gray-700">Nome</label>
+              <input id="editScoutNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <div>
+              <label for="editScoutCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+              <input id="editScoutCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button type="button" onclick="window.UI.closeModal('editScoutModal')" class="btn-secondary">Annulla</button>
+              <button class="btn-primary">Salva</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="confirmDeleteScoutModal" class="modal">
+        <div class="modal-content max-w-sm mx-auto text-center">
+          <h4 class="text-xl font-semibold text-gray-700">Conferma Eliminazione Esploratore</h4>
+          <p class="text-gray-600 mb-4">Eliminare <span id="scoutNameToDelete" class="font-semibold text-red-600"></span>? Verranno rimosse anche le presenze associate.</p>
+          <div class="flex gap-2 justify-center">
+            <button onclick="window.UI.closeModal('confirmDeleteScoutModal')" class="btn-secondary">Annulla</button>
+            <button id="confirmDeleteScoutButton" class="btn-danger">Elimina</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <section id="presenzeTab" class="tab-content active">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Registro Presenze</h2>
+        <div class="overflow-x-auto rounded-lg shadow-sm">
+          <table class="presence-table bg-white">
+            <thead>
+              <tr id="tableHeaderDates">
+                <th rowspan="2" class="sticky left-0 !bg-green-700 !text-white !p-4 text-left">Esploratore</th>
+              </tr>
+              <tr id="tableHeaderNames"></tr>
+            </thead>
+            <tbody id="presenceTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dashboardTab" class="tab-content">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Dashboard & Statistiche</h2>
+        <div class="space-y-6">
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Presenza per Esploratore</h3>
+            <canvas id="scoutPresenceChart"></canvas>
+          </div>
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Presenze per Attività</h3>
+            <canvas id="activityPresenceChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="staffTab" class="tab-content">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Gestione Staff</h2>
+        <div class="space-y-6">
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Aggiungi Membro Staff</h3>
+            <form id="addStaffForm" class="space-y-4">
+              <div>
+                <label for="staffNome" class="block text-sm font-medium text-gray-700">Nome</label>
+                <input id="staffNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+              </div>
+              <div>
+                <label for="staffCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+                <input id="staffCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+              </div>
+              <button class="btn-primary w-full">Aggiungi Staff</button>
+            </form>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Membri Staff</h3>
+            <div id="staffList" class="space-y-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scoutsTab" class="tab-content">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Gestione Esploratori</h2>
+        <div class="space-y-6">
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Aggiungi Nuovo Esploratore</h3>
+            <form id="addScoutForm" class="space-y-4">
+              <div>
+                <label for="scoutNome" class="block text-sm font-medium text-gray-700">Nome</label>
+                <input id="scoutNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+              </div>
+              <div>
+                <label for="scoutCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+                <input id="scoutCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+              </div>
+              <button class="btn-primary w-full">Aggiungi Esploratore</button>
+            </form>
+          </div>
+          <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Lista Esploratori</h3>
+            <div id="scoutsList" class="space-y-2"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- App -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

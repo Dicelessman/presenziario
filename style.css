@@ -1,0 +1,48 @@
+/* Base */
+body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji'; }
+.modal {
+  display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,.6);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+.modal.show { display: block; }
+.modal-content {
+  background: #fff; margin: 10vh auto; padding: 24px; border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,.1); max-width: 90%; animation: fadeIn .25s;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px) } to { opacity: 1; transform: translateY(0) } }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+#hamburgerMenu { display:flex; flex-direction: column; align-items: flex-end; padding: .5rem 1rem; }
+#hamburgerMenu .nav-links { display:none; flex-direction: column; width:100%; margin:.5rem 0 1rem; }
+#hamburgerMenu .nav-links.active { display:flex; }
+#hamburgerMenu .tab-btn { width:100%; text-align:left; color:white; }
+#hamburgerMenu .tab-btn.bg-green-600 { background: #16a34a; }
+
+.presence-table { width:100%; border-collapse: separate; border-spacing:0; }
+.presence-table th, .presence-table td { padding:.75rem; border:1px solid #e5e7eb; text-align:center; vertical-align: top; }
+.presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; }
+.presence-table td select { border:none; background:transparent; padding:.25rem; border-radius:.5rem; text-align:center;
+  appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer;
+}
+.presence-select { color:#22c55e; } /* green-500 */
+.payment-select { color:#16a34a; } /* green-600 */
+.payment-section { display:flex; flex-direction:column; align-items:center; margin-top:.5rem; font-size:.875rem; }
+
+/* Buttons */
+.btn-primary { background:#16a34a; color:white; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; }
+.btn-primary:hover { filter: brightness(.95); }
+.btn-secondary { background:#e5e7eb; color:#111827; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; }
+.btn-secondary:hover { filter: brightness(.95); }
+.btn-danger { background:#dc2626; color:white; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; }
+.btn-danger:hover { filter: brightness(.95); }
+
+/* Mobile friendly cards for presenze (optional: could be toggled) */
+@media (max-width: 640px) {
+  .presence-table thead { display:none; }
+  .presence-table, .presence-table tbody, .presence-table tr, .presence-table td { display:block; width:100%; }
+  .presence-table tr { margin-bottom: .75rem; border:1px solid #e5e7eb; border-radius:.5rem; overflow:hidden; }
+  .presence-table td { border:none; border-bottom:1px solid #e5e7eb; }
+  .presence-table td:last-child { border-bottom:none; }
+}
