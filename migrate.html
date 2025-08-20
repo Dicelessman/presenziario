@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrazione Date - Scout Maori</title>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f3f4f6;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #16a34a;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning h3 {
+            color: #d97706;
+            margin-top: 0;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        #log {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Migrazione Date Firestore</h1>
+        
+        <div class="warning">
+            <h3>⚠️ Attenzione</h3>
+            <p>Questo script converte le date delle attività da stringhe (es. "18/08/2024") a Date objects in Firestore.</p>
+            <p><strong>Importante:</strong></p>
+            <ul>
+                <li>Esegui questo script UNA SOLA VOLTA</li>
+                <li>Assicurati di avere un backup dei dati</li>
+                <li>Lo script è sicuro e non cancella dati</li>
+            </ul>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div>
+            <button id="migrateBtn" onclick="startMigration()">🚀 Avvia Migrazione</button>
+            <button onclick="clearLog()">🗑️ Pulisci Log</button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script type="module" src="migrate-dates.js"></script>
+    <script>
+        let isRunning = false;
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        async function startMigration() {
+            if (isRunning) {
+                alert('Migrazione già in corso...');
+                return;
+            }
+
+            const confirmed = confirm(
+                'Sei sicuro di voler avviare la migrazione delle date?\n\n' +
+                'Questo processo è sicuro ma dovrebbe essere eseguito una sola volta.'
+            );
+
+            if (!confirmed) return;
+
+            isRunning = true;
+            const btn = document.getElementById('migrateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Migrazione in corso...';
+
+            showStatus('Migrazione in corso...', 'info');
+            log('🚀 Avvio migrazione date...');
+
+            try {
+                // Intercetta i console.log dello script di migrazione
+                const originalLog = console.log;
+                console.log = function(...args) {
+                    log(args.join(' '));
+                    originalLog.apply(console, args);
+                };
+
+                await window.migrateDates();
+
+                showStatus('✅ Migrazione completata con successo!', 'success');
+                log('🎉 Migrazione terminata!');
+
+            } catch (error) {
+                showStatus('❌ Errore durante la migrazione', 'error');
+                log(`❌ Errore: ${error.message}`);
+                console.error(error);
+            } finally {
+                isRunning = false;
+                btn.disabled = false;
+                btn.textContent = '🚀 Avvia Migrazione';
+                console.log = originalLog;
+            }
+        }
+
+        // Log iniziale
+        log('📋 Pagina di migrazione caricata');
+        log('💡 Clicca "Avvia Migrazione" per iniziare');
+    </script>
+</body>
+</html>
