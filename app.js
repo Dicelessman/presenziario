@@ -422,12 +422,38 @@ const UI = {
       list.innerHTML = '<p class="text-gray-500">Nessuna attività pianificata.</p>';
       return;
     }
-    this.state.activities.forEach(a => {
+
+    // Ordina le attività per data
+    const sortedActivities = [...this.state.activities].sort((a, b) => {
+      const [d1, m1, y1] = a.data.split('/');
+      const [d2, m2, y2] = b.data.split('/');
+      return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+    });
+
+    // Trova la prossima attività (prima data futura o oggi)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let nextActivityId = null;
+    
+    for (const a of sortedActivities) {
+      const [d, m, y] = a.data.split('/');
+      const activityDate = new Date(`${y}-${m}-${d}`);
+      if (activityDate >= today) {
+        nextActivityId = a.id;
+        break;
+      }
+    }
+
+    sortedActivities.forEach(a => {
       const costoLabel = parseFloat(a.costo || '0') > 0 ? ` — Costo: € ${a.costo}` : '';
+      const isNext = a.id === nextActivityId;
+      const bgClass = isNext ? 'bg-green-50 border-l-4 border-green-500' : 'bg-white';
+      const textClass = isNext ? 'text-green-800' : 'text-green-700';
+      
       list.insertAdjacentHTML('beforeend', `
-        <div class="p-4 bg-white rounded-lg shadow-sm flex items-start justify-between gap-4">
+        <div class="p-4 ${bgClass} rounded-lg shadow-sm flex items-start justify-between gap-4">
           <div>
-            <p class="font-medium text-lg text-green-700">${a.tipo} — ${a.data}</p>
+            <p class="font-medium text-lg ${textClass}">${a.tipo} — ${a.data}${isNext ? ' (Prossima)' : ''}</p>
             <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
           </div>
           <div class="flex gap-2">
