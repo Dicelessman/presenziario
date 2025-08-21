@@ -213,6 +213,35 @@ const UI = {
     this.state.activities.sort((a, b) => this.toJsDate(a.data) - this.toJsDate(b.data));
   },
 
+  // ===== Indice Presenze (deduplicato per esploratoreId + attivitaId) =====
+  _presenceIndex: null,
+  _presenceRank(stato) { return stato === 'Presente' ? 2 : (stato === 'Assente' ? 1 : 0); },
+  rebuildPresenceIndex() {
+    const map = new Map();
+    for (const p of (this.state.presences || [])) {
+      const key = `${p.esploratoreId}_${p.attivitaId}`;
+      const existing = map.get(key);
+      if (!existing) { map.set(key, p); continue; }
+      const exRank = this._presenceRank(existing.stato);
+      const pRank = this._presenceRank(p.stato);
+      if (pRank > exRank) { map.set(key, p); continue; }
+      if (pRank === exRank) {
+        if ((p.pagato ? 1 : 0) > (existing.pagato ? 1 : 0)) { map.set(key, p); continue; }
+        // tie-breaker: prefer the newer reference
+        map.set(key, p);
+      }
+    }
+    this._presenceIndex = map;
+  },
+  getPresence(scoutId, activityId) {
+    if (!this._presenceIndex) this.rebuildPresenceIndex();
+    return this._presenceIndex.get(`${scoutId}_${activityId}`) || null;
+  },
+  getDedupedPresences() {
+    if (!this._presenceIndex) this.rebuildPresenceIndex();
+    return Array.from(this._presenceIndex.values());
+  },
+
   async init() {
     try {
       // Toggle Firestore by enabling the next line after adding firebaseConfig:
@@ -233,6 +262,8 @@ const UI = {
     // Normalizza e ordina le date attività
     this.normalizeActivitiesDates();
     this.sortActivities();
+    // Costruisci indice presenze deduplicato
+    this.rebuildPresenceIndex();
 
     // Tabs
     this.setupTabs();
@@ -283,6 +314,7 @@ const UI = {
         this.state = await DATA.loadAll();
         this.normalizeActivitiesDates();
         this.sortActivities();
+        this.rebuildPresenceIndex();
         this.renderPresenceTable();
         this.renderCalendar && this.renderCalendar();
         this.renderDashboard();
@@ -305,6 +337,7 @@ const UI = {
         this.state = await DATA.loadAll();
         this.normalizeActivitiesDates();
         this.sortActivities();
+        this.rebuildPresenceIndex();
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -319,6 +352,7 @@ const UI = {
         this.state = await DATA.loadAll();
         this.normalizeActivitiesDates();
         this.sortActivities();
+        this.rebuildPresenceIndex();
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -330,7 +364,7 @@ const UI = {
       const cognome = this.qs('editStaffCognome').value.trim();
       await DATA.updateStaff({ id, nome, cognome });
       this.closeModal('editStaffModal');
-      this.state = await DATA.loadAll(); this.renderStaff();
+      this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderStaff();
     });
 
     this.qs('editScoutForm').addEventListener('submit', async (e) => {
@@ -340,7 +374,7 @@ const UI = {
       const cognome = this.qs('editScoutCognome').value.trim();
       await DATA.updateScout({ id, nome, cognome });
       this.closeModal('editScoutModal');
-      this.state = await DATA.loadAll(); this.renderScouts(); this.renderPresenceTable();
+      this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderScouts(); this.renderPresenceTable();
     });
 
     this.qs('confirmDeleteStaffButton').addEventListener('click', async () => {
@@ -348,7 +382,7 @@ const UI = {
       await DATA.deleteStaff(this.staffToDeleteId);
       this.staffToDeleteId = null;
       this.closeModal('confirmDeleteStaffModal');
-      this.state = await DATA.loadAll(); this.renderStaff();
+      this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderStaff();
       if (!this.state.staff.find(s => s.id === this.selectedStaffId)) {
         this.selectedStaffId = null; document.getElementById('selectedStaffName').textContent = 'Nessuno';
         this.renderPresenceTable();
@@ -360,7 +394,7 @@ const UI = {
       await DATA.deleteScout(this.scoutToDeleteId);
       this.scoutToDeleteId = null;
       this.closeModal('confirmDeleteScoutModal');
-      this.state = await DATA.loadAll(); this.renderScouts(); this.renderPresenceTable(); this.renderDashboard();
+      this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderScouts(); this.renderPresenceTable(); this.renderDashboard();
     });
 
     // Dashboard on demand
@@ -601,6 +635,7 @@ const UI = {
     await DATA.updatePresence({ field, value, scoutId, activityId });
     this.state = await DATA.loadAll();
     // re-render only affected parts for simplicity -> full table for robustness
+    // Dopo update, ricarico e ricostruisco indice presenze
     this.renderPresenceTable(); this.renderDashboard();
   },
 
@@ -627,7 +662,7 @@ const UI = {
     const totalScouts = this.state.scouts.length;
     const acts = this.getActivitiesSorted();
     acts.forEach(a => {
-      const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
+      const presentCount = this.getDedupedPresences().filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
       const displayDate = UI.formatDisplayDate(a.data);
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${displayDate}</th>`);
@@ -638,13 +673,13 @@ const UI = {
     const sortedScouts = [...this.state.scouts].sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
     sortedScouts.forEach(s => {
       const totalActs = this.state.activities.length;
-      const presentCount = this.state.presences.filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
+      const presentCount = this.getDedupedPresences().filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
       const perc = totalActs ? Math.round((presentCount / totalActs) * 100) : 0;
       let row = `<tr><td class="p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0">${s.nome} ${s.cognome}
         <div class="text-xs font-normal text-gray-500">${presentCount} / ${totalActs} (${perc}%)</div>
       </td>`;
       acts.forEach(a => {
-        const presence = this.state.presences.find(p => p.esploratoreId === s.id && p.attivitaId === a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
+        const presence = this.getPresence(s.id, a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = this.selectedStaffId ? '' : 'disabled';
         const needsPayment = parseFloat(a.costo || '0') > 0;
 
@@ -684,8 +719,9 @@ const UI = {
     Chart.register(ChartDataLabels);
 
     const scoutLabels = scouts.map(s => `${s.nome} ${s.cognome}`);
+    const dedup = this.getDedupedPresences();
     const scoutPerc = scouts.map(s => {
-      const count = presences.filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
+      const count = dedup.filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
       return activities.length ? (count/activities.length)*100 : 0;
     });
     const ctx1 = document.getElementById('scoutPresenceChart').getContext('2d');
@@ -703,7 +739,7 @@ const UI = {
       const displayDate = UI.formatDisplayDate(a.data);
       return `${a.tipo}: ${a.descrizione}\n${displayDate}`;
     });
-    const actData = activities.map(a => presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
+    const actData = activities.map(a => dedup.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
     const ctx2 = document.getElementById('activityPresenceChart').getContext('2d');
     this.charts.activity = new Chart(ctx2, {
       type: 'bar',
