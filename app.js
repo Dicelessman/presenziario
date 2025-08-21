@@ -47,7 +47,7 @@ class LocalAdapter {
   persist() { localStorage.setItem('presenziario-state', JSON.stringify(this.state)); }
   async loadAll() { return structuredClone(this.state); }
   // Activities
-  async addActivity({ tipo, data, descrizione, costo }) {
+  async addActivity({ tipo, data, descrizione, costo }, currentUser) {
     const id = 'a' + (Math.random().toString(36).slice(2, 8));
     this.state.activities.push({ id, tipo, data, descrizione, costo });
     // pre-popola presenze per nuovi eventi
@@ -55,50 +55,60 @@ class LocalAdapter {
       esploratoreId: s.id, attivitaId: id, stato: 'NR', pagato: false, tipoPagamento: null
     }));
     this.persist();
+    console.log('LocalAdapter: addActivity', { tipo, data, descrizione, costo, id, currentUser: currentUser?.email });
     return id;
   }
-  async updateActivity({ id, tipo, data, descrizione, costo }) {
+  async updateActivity({ id, tipo, data, descrizione, costo }, currentUser) {
     const a = this.state.activities.find(x => x.id === id);
     if (a) { a.tipo = tipo; a.data = data; a.descrizione = descrizione; a.costo = costo; this.persist(); }
+    console.log('LocalAdapter: updateActivity', { id, tipo, data, descrizione, costo, currentUser: currentUser?.email });
   }
-  async deleteActivity(id) {
+  async deleteActivity(id, currentUser) {
     this.state.activities = this.state.activities.filter(a => a.id !== id);
     this.state.presences = this.state.presences.filter(p => p.attivitaId !== id);
     this.persist();
+    console.log('LocalAdapter: deleteActivity', { id, currentUser: currentUser?.email });
   }
   // Staff
-  async addStaff({ nome, cognome }) {
+  async addStaff({ nome, cognome }, currentUser) {
     const id = 'st' + (Math.random().toString(36).slice(2, 8));
     this.state.staff.push({ id, nome, cognome }); this.persist(); return id;
+    console.log('LocalAdapter: addStaff', { nome, cognome, id, currentUser: currentUser?.email });
   }
-  async updateStaff({ id, nome, cognome }) {
+  async updateStaff({ id, nome, cognome }, currentUser) {
     const m = this.state.staff.find(s => s.id === id); if (m) { m.nome = nome; m.cognome = cognome; this.persist(); }
+    console.log('LocalAdapter: updateStaff', { id, nome, cognome, currentUser: currentUser?.email });
   }
-  async deleteStaff(id) {
+  async deleteStaff(id, currentUser) {
     this.state.staff = this.state.staff.filter(s => s.id !== id); this.persist();
+    console.log('LocalAdapter: deleteStaff', { id, currentUser: currentUser?.email });
   }
   // Scouts
-  async addScout({ nome, cognome }) {
+  async addScout({ nome, cognome }, currentUser) {
     const id = 's' + (Math.random().toString(36).slice(2, 8));
     this.state.scouts.push({ id, nome, cognome });
     this.state.activities.forEach(a => this.state.presences.push({ esploratoreId: id, attivitaId: a.id, stato: 'NR', pagato: false, tipoPagamento: null }));
     this.persist(); return id;
+    console.log('LocalAdapter: addScout', { nome, cognome, id, currentUser: currentUser?.email });
   }
-  async updateScout({ id, nome, cognome }) {
+  async updateScout({ id, nome, cognome }, currentUser) {
     const s = this.state.scouts.find(x => x.id === id); if (s) { s.nome = nome; s.cognome = cognome; this.persist(); }
+    console.log('LocalAdapter: updateScout', { id, nome, cognome, currentUser: currentUser?.email });
   }
-  async deleteScout(id) {
+  async deleteScout(id, currentUser) {
     this.state.scouts = this.state.scouts.filter(s => s.id !== id);
     this.state.presences = this.state.presences.filter(p => p.esploratoreId !== id);
     this.persist();
+    console.log('LocalAdapter: deleteScout', { id, currentUser: currentUser?.email });
   }
   // Presences
-  async updatePresence({ field, value, scoutId, activityId }) {
+  async updatePresence({ field, value, scoutId, activityId }, currentUser) {
     let p = this.state.presences.find(x => x.esploratoreId === scoutId && x.attivitaId === activityId);
     if (!p) { p = { esploratoreId: scoutId, attivitaId: activityId, stato: 'NR', pagato: false, tipoPagamento: null }; this.state.presences.push(p); }
     p[field] = value;
     if (field === 'pagato' && !value) p.tipoPagamento = null;
     this.persist();
+    console.log('LocalAdapter: updatePresence', { field, value, scoutId, activityId, currentUser: currentUser?.email });
   }
 }
 
@@ -121,6 +131,7 @@ class FirestoreAdapter {
       staff: collection(this.db, 'staff'),
       activities: collection(this.db, 'activities'),
       presences: collection(this.db, 'presences'),
+      auditLogs: collection(this.db, 'auditLogs'),
     };
     this.auth = getAuth(this.app);
   }
@@ -134,27 +145,85 @@ class FirestoreAdapter {
     const presences = presSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     return { scouts, staff, activities, presences };
   }
-  async addActivity({ tipo, data, descrizione, costo }) { const ref = await addDoc(this.cols.activities, { tipo, data, descrizione, costo }); return ref.id; }
-  async updateActivity({ id, tipo, data, descrizione, costo }) { await setDoc(doc(this.db, 'activities', id), { tipo, data, descrizione, costo }, { merge: true }); }
-  async deleteActivity(id) { await deleteDoc(doc(this.db, 'activities', id)); }
-  async addStaff({ nome, cognome }) { const ref = await addDoc(this.cols.staff, { nome, cognome }); return ref.id; }
-  async updateStaff({ id, nome, cognome }) { await setDoc(doc(this.db, 'staff', id), { nome, cognome }, { merge: true }); }
-  async deleteStaff(id) { await deleteDoc(doc(this.db, 'staff', id)); }
 
-  async addScout({ nome, cognome }) { const ref = await addDoc(this.cols.scouts, { nome, cognome }); return ref.id; }
-  async updateScout({ id, nome, cognome }) { await setDoc(doc(this.db, 'scouts', id), { nome, cognome }, { merge: true }); }
-  async deleteScout(id) {
+  async addAuditLog(action, entityType, entityId, details, userId, userEmail) {
+    if (!userId) { console.warn('Attempted to log audit event without userId.', { action, entityType, entityId }); return; }
+    try {
+      await addDoc(this.cols.auditLogs, {
+        timestamp: new Date(),
+        action,
+        entityType,
+        entityId,
+        details,
+        userId,
+        userEmail,
+      });
+    } catch (error) {
+      console.error('Error writing audit log:', error);
+    }
+  }
+
+  async addActivity({ tipo, data, descrizione, costo }, currentUser) {
+    const ref = await addDoc(this.cols.activities, { tipo, data, descrizione, costo });
+    if (currentUser) { await this.addAuditLog('add', 'activity', ref.id, { tipo, data, descrizione, costo }, currentUser.uid, currentUser.email); }
+    return ref.id;
+  }
+  async updateActivity({ id, tipo, data, descrizione, costo }, currentUser) {
+    await setDoc(doc(this.db, 'activities', id), { tipo, data, descrizione, costo }, { merge: true });
+    if (currentUser) { await this.addAuditLog('update', 'activity', id, { tipo, data, descrizione, costo }, currentUser.uid, currentUser.email); }
+  }
+  async deleteActivity(id, currentUser) {
+    await deleteDoc(doc(this.db, 'activities', id));
+    if (currentUser) { await this.addAuditLog('delete', 'activity', id, {}, currentUser.uid, currentUser.email); }
+  }
+  async addStaff({ nome, cognome }, currentUser) {
+    const ref = await addDoc(this.cols.staff, { nome, cognome });
+    if (currentUser) { await this.addAuditLog('add', 'staff', ref.id, { nome, cognome }, currentUser.uid, currentUser.email); }
+    return ref.id;
+  }
+  async updateStaff({ id, nome, cognome }, currentUser) {
+    await setDoc(doc(this.db, 'staff', id), { nome, cognome }, { merge: true });
+    if (currentUser) { await this.addAuditLog('update', 'staff', id, { nome, cognome }, currentUser.uid, currentUser.email); }
+  }
+  async deleteStaff(id, currentUser) {
+    await deleteDoc(doc(this.db, 'staff', id));
+    if (currentUser) { await this.addAuditLog('delete', 'staff', id, {}, currentUser.uid, currentUser.email); }
+  }
+
+  async addScout({ nome, cognome }, currentUser) {
+    const ref = await addDoc(this.cols.scouts, { nome, cognome });
+    if (currentUser) { await this.addAuditLog('add', 'scout', ref.id, { nome, cognome }, currentUser.uid, currentUser.email); }
+    return ref.id;
+  }
+  async updateScout({ id, nome, cognome }, currentUser) {
+    await setDoc(doc(this.db, 'scouts', id), { nome, cognome }, { merge: true });
+    if (currentUser) { await this.addAuditLog('update', 'scout', id, { nome, cognome }, currentUser.uid, currentUser.email); }
+  }
+  async deleteScout(id, currentUser) {
     await deleteDoc(doc(this.db, 'scouts', id));
+    if (currentUser) { await this.addAuditLog('delete', 'scout', id, {}, currentUser.uid, currentUser.email); }
     // Optional: delete presences for this scout (requires index or batch)
     // Firestore does not support server-side cascade; you may loop query results and delete.
   }
 
-  async updatePresence({ field, value, scoutId, activityId }) {
+  async updatePresence({ field, value, scoutId, activityId }, currentUser) {
     // presenceId = `${scoutId}_${activityId}` (deterministic)
     const presenceId = `${scoutId}_${activityId}`;
+    // Get existing presence data to log before change if it exists
+    const existingPresenceDoc = await getDoc(doc(this.db, 'presences', presenceId));
+    const oldValue = existingPresenceDoc.exists() ? existingPresenceDoc.data()[field] : undefined;
+
     await setDoc(doc(this.db, 'presences', presenceId), {
       esploratoreId: scoutId, attivitaId: activityId, [field]: value
     }, { merge: true });
+
+    if (currentUser) {
+      await this.addAuditLog(
+        'update', 'presence', presenceId,
+        { field, oldValue, newValue: value, scoutId, activityId },
+        currentUser.uid, currentUser.email
+      );
+    }
   }
 }
 
@@ -163,16 +232,16 @@ const DATA = {
   adapter: new LocalAdapter(),
   useFirestore() { this.adapter = new FirestoreAdapter(); },
   async loadAll() { return await this.adapter.loadAll(); },
-  async addActivity(p) { return await this.adapter.addActivity(p); },
-  async updateActivity(p) { return await this.adapter.updateActivity(p); },
-  async deleteActivity(id) { return await this.adapter.deleteActivity(id); },
-  async addStaff(p) { return await this.adapter.addStaff(p); },
-  async updateStaff(p) { return await this.adapter.updateStaff(p); },
-  async deleteStaff(id) { return await this.adapter.deleteStaff(id); },
-  async addScout(p) { return await this.adapter.addScout(p); },
-  async updateScout(p) { return await this.adapter.updateScout(p); },
-  async deleteScout(id) { return await this.adapter.deleteScout(id); },
-  async updatePresence(p) { return await this.adapter.updatePresence(p); },
+  async addActivity(p, currentUser) { return await this.adapter.addActivity(p, currentUser); },
+  async updateActivity(p, currentUser) { return await this.adapter.updateActivity(p, currentUser); },
+  async deleteActivity(id, currentUser) { return await this.adapter.deleteActivity(id, currentUser); },
+  async addStaff(p, currentUser) { return await this.adapter.addStaff(p, currentUser); },
+  async updateStaff(p, currentUser) { return await this.adapter.updateStaff(p, currentUser); },
+  async deleteStaff(id, currentUser) { return await this.adapter.deleteStaff(id, currentUser); },
+  async addScout(p, currentUser) { return await this.adapter.addScout(p, currentUser); },
+  async updateScout(p, currentUser) { return await this.adapter.updateScout(p, currentUser); },
+  async deleteScout(id, currentUser) { return await this.adapter.deleteScout(id, currentUser); },
+  async updatePresence(p, currentUser) { return await this.adapter.updatePresence(p, currentUser); },
 };
 
 // ============== UI Layer ==============
@@ -264,6 +333,7 @@ const UI = {
           // Imposta il nome dello staff se esiste un membro staff con questa email
           const loggedInStaff = this.state.staff.find(s => s.email === user.email);
           if (loggedInStaff) {
+            this.enableEditing();
             this.selectStaff(loggedInStaff.id);
           } else {
             // Se l'utente non è un membro staff, disabilita modifiche
@@ -318,7 +388,7 @@ const UI = {
       const nome = this.qs('scoutNome').value.trim();
       const cognome = this.qs('scoutCognome').value.trim();
       if (!nome || !cognome) return;
-      await DATA.addScout({ nome, cognome });
+      await DATA.addScout({ nome, cognome }, this.currentUser);
       this.state = await DATA.loadAll();
       this.renderScouts(); this.renderPresenceTable(); e.target.reset();
     });
@@ -329,7 +399,7 @@ const UI = {
       const nome = this.qs('staffNome').value.trim();
       const cognome = this.qs('staffCognome').value.trim();
       if (!nome || !cognome) return;
-      await DATA.addStaff({ nome, cognome });
+      await DATA.addStaff({ nome, cognome }, this.currentUser);
       this.state = await DATA.loadAll();
       this.renderStaff(); e.target.reset();
     });
@@ -344,7 +414,7 @@ const UI = {
         const descrizione = this.qs('activityDescrizione').value.trim();
         const costo = this.qs('activityCosto').value.trim() || '0';
         if (!tipo || !data || !descrizione) return;
-        await DATA.addActivity({ tipo, data, descrizione, costo });
+        await DATA.addActivity({ tipo, data, descrizione, costo }, this.currentUser);
         this.state = await DATA.loadAll();
         this.normalizeActivitiesDates();
         this.sortActivities();
@@ -367,7 +437,7 @@ const UI = {
         const descrizione = this.qs('editActivityDescrizione').value.trim();
         const costo = this.qs('editActivityCosto').value.trim() || '0';
         if (!id || !tipo || !data || !descrizione) return;
-        await DATA.updateActivity({ id, tipo, data, descrizione, costo });
+        await DATA.updateActivity({ id, tipo, data, descrizione, costo }, this.currentUser);
         this.closeModal('editActivityModal');
         this.state = await DATA.loadAll();
         this.normalizeActivitiesDates();
@@ -382,7 +452,7 @@ const UI = {
       confirmDeleteActivityButton.addEventListener('click', async () => {
         if (!this.currentUser) { alert('Devi essere loggato per eliminare attività.'); return; }
         if (!this.activityToDeleteId) return;
-        await DATA.deleteActivity(this.activityToDeleteId);
+        await DATA.deleteActivity(this.activityToDeleteId, this.currentUser);
         this.activityToDeleteId = null;
         this.closeModal('confirmDeleteActivityModal');
         this.state = await DATA.loadAll();
@@ -399,7 +469,7 @@ const UI = {
       const id = this.qs('editStaffId').value;
       const nome = this.qs('editStaffNome').value.trim();
       const cognome = this.qs('editStaffCognome').value.trim();
-      await DATA.updateStaff({ id, nome, cognome });
+      await DATA.updateStaff({ id, nome, cognome }, this.currentUser);
       this.closeModal('editStaffModal');
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderStaff();
     });
@@ -410,7 +480,7 @@ const UI = {
       const id = this.qs('editScoutId').value;
       const nome = this.qs('editScoutNome').value.trim();
       const cognome = this.qs('editScoutCognome').value.trim();
-      await DATA.updateScout({ id, nome, cognome });
+      await DATA.updateScout({ id, nome, cognome }, this.currentUser);
       this.closeModal('editScoutModal');
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderScouts(); this.renderPresenceTable();
     });
@@ -418,7 +488,7 @@ const UI = {
     this.qs('confirmDeleteStaffButton').addEventListener('click', async () => {
       if (!this.currentUser) { alert('Devi essere loggato per eliminare staff.'); return; }
       if (!this.staffToDeleteId) return;
-      await DATA.deleteStaff(this.staffToDeleteId);
+      await DATA.deleteStaff(this.staffToDeleteId, this.currentUser);
       this.staffToDeleteId = null;
       this.closeModal('confirmDeleteStaffModal');
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderStaff();
@@ -431,7 +501,7 @@ const UI = {
     this.qs('confirmDeleteScoutButton').addEventListener('click', async () => {
       if (!this.currentUser) { alert('Devi essere loggato per eliminare esploratori.'); return; }
       if (!this.scoutToDeleteId) return;
-      await DATA.deleteScout(this.scoutToDeleteId);
+      await DATA.deleteScout(this.scoutToDeleteId, this.currentUser);
       this.scoutToDeleteId = null;
       this.closeModal('confirmDeleteScoutModal');
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderScouts(); this.renderPresenceTable(); this.renderDashboard();
@@ -633,8 +703,8 @@ const UI = {
             <p class="text-gray-700">${a.descrizione}${costoLabel}</p>
           </div>
           <div class="flex gap-2">
-            <button aria-label="Modifica attività" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditActivityModal('${a.id}')">✏️</button>
-            <button aria-label="Elimina attività" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteActivity('${a.id}')">🗑️</button>
+            <button aria-label="Modifica attività" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditActivityModal('${a.id}')" ${this.currentUser ? '' : 'disabled'}>✏️</button>
+            <button aria-label="Elimina attività" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteActivity('${a.id}')" ${this.currentUser ? '' : 'disabled'}>🗑️</button>
           </div>
         </div>
       `);
@@ -642,6 +712,7 @@ const UI = {
   },
 
   openEditActivityModal(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare attività.'); return; }
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.qs('editActivityId').value = a.id;
     this.qs('editActivityTipo').value = a.tipo;
@@ -652,6 +723,7 @@ const UI = {
     this.showModal('editActivityModal');
   },
   confirmDeleteActivity(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per eliminare attività.'); return; }
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.activityToDeleteId = id;
     const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
@@ -742,7 +814,7 @@ const UI = {
   async updatePresenceCell({ field, value, scoutId, activityId }) {
     if (!this.currentUser) { alert('Devi essere loggato per modificare le presenze.'); return; }
     if (!this.selectedStaffId) return; // disabled without staff
-    await DATA.updatePresence({ field, value, scoutId, activityId });
+    await DATA.updatePresence({ field, value, scoutId, activityId }, this.currentUser);
     this.state = await DATA.loadAll();
     // Normalizza attività e ricostruisci indice per coerenza
     this.normalizeActivitiesDates();
@@ -756,11 +828,11 @@ const UI = {
     if (!this.currentUser) { alert('Devi essere loggato per modificare i pagamenti.'); return; }
     if (!this.selectedStaffId) return;
     if (!value) {
-      await DATA.updatePresence({ field: 'pagato', value: false, scoutId, activityId });
-      await DATA.updatePresence({ field: 'tipoPagamento', value: null, scoutId, activityId });
+      await DATA.updatePresence({ field: 'pagato', value: false, scoutId, activityId }, this.currentUser);
+      await DATA.updatePresence({ field: 'tipoPagamento', value: null, scoutId, activityId }, this.currentUser);
     } else {
-      await DATA.updatePresence({ field: 'pagato', value: true, scoutId, activityId });
-      await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId });
+      await DATA.updatePresence({ field: 'pagato', value: true, scoutId, activityId }, this.currentUser);
+      await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId }, this.currentUser);
     }
     this.state = await DATA.loadAll();
     this.normalizeActivitiesDates();
@@ -808,7 +880,6 @@ const UI = {
               <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
               <option value="NR" ${presence.stato==='NR'?'selected':''}>NR</option>
             </select>
-            <button type="button" id="logoutButton" class="btn-danger mt-4" style="display:none;">Logout</button>
             ${needsPayment ? `
             <div class="payment-section">
               <select class="payment-select mt-1" ${disabled}
