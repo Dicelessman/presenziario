@@ -17,6 +17,8 @@
   <!-- Chart.js + Datalabels -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <!-- Firebase Auth -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
   <div id="app" class="max-w-4xl mx-auto w-full bg-white shadow-lg rounded-xl overflow-hidden my-4">
@@ -30,6 +32,7 @@
         <span class="text-green-200">Staff Selezionato:</span>
         <span id="selectedStaffName" class="font-semibold">Nessuno</span>
       </div>
+      <button type="button" id="logoutButton" class="btn-danger" style="display:none;">Logout</button>
     </header>
 
     <!-- Nav (Hamburger) -->
@@ -242,6 +245,25 @@
             <button onclick="window.UI.closeModal('confirmDeleteActivityModal')" class="btn-secondary">Annulla</button>
             <button id="confirmDeleteActivityButton" class="btn-danger">Elimina</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Login Modal -->
+      <div id="loginModal" class="modal show">
+        <div class="modal-content max-w-sm mx-auto">
+          <h4 class="text-xl font-semibold text-gray-700">Accedi all'App</h4>
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+              <input id="loginEmail" type="email" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <div>
+              <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+              <input id="loginPassword" type="password" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+            </div>
+            <button type="submit" class="btn-primary w-full">Accedi</button>
+            <p id="loginError" class="text-red-500 text-sm text-center"></p>
+          </form>
         </div>
       </div>
 

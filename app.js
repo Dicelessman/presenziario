@@ -6,6 +6,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import {
   getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 // ============== Data Layer ==============
 class LocalAdapter {
@@ -121,6 +122,7 @@ class FirestoreAdapter {
       activities: collection(this.db, 'activities'),
       presences: collection(this.db, 'presences'),
     };
+    this.auth = getAuth(this.app);
   }
   async loadAll() {
     const [scoutsSnap, staffSnap, actsSnap, presSnap] = await Promise.all([
@@ -180,6 +182,7 @@ const UI = {
   scoutToDeleteId: null,
   activityToDeleteId: null,
   state: { scouts: [], staff: [], activities: [], presences: [] },
+  currentUser: null, // Aggiunto per tenere traccia dell'utente loggato
 
   qs(id) { return document.getElementById(id); },
   showModal(id){ this.qs(id).classList.add('show'); },
@@ -249,42 +252,69 @@ const UI = {
       // Toggle Firestore by enabling the next line after adding firebaseConfig:
       DATA.useFirestore();
 
-      // Load state
-      this.state = await DATA.loadAll();
-      console.log('Loaded state:', this.state);
-      
-      // Ensure state has all required properties
-      this.state = {
-        scouts: this.state.scouts || [],
-        staff: this.state.staff || [],
-        activities: this.state.activities || [],
-        presences: this.state.presences || []
-      };
-    
-    // Normalizza e ordina le date attività
-    this.normalizeActivitiesDates();
-    this.sortActivities();
-    // Costruisci indice presenze deduplicato
-    this.rebuildPresenceIndex();
-
-    // Tabs
-    this.setupTabs();
-
-    // Initial renders
-    this.renderScouts();
-    this.renderStaff();
-    this.renderPresenceTable();
-    this.initMobilePresenceNav();
-    this.renderCalendar();
-
-    // Listeners
-    document.querySelector('.hamburger-icon').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('active');
-    });
+      // Inizializza Firebase Auth
+      onAuthStateChanged(DATA.adapter.auth, async (user) => {
+        this.currentUser = user;
+        if (user) {
+          // Utente loggato
+          console.log("Utente loggato:", user.email);
+          this.closeModal('loginModal');
+          // Carica lo stato solo dopo il login
+          await this.loadAndRenderAll();
+          // Imposta il nome dello staff se esiste un membro staff con questa email
+          const loggedInStaff = this.state.staff.find(s => s.email === user.email);
+          if (loggedInStaff) {
+            this.selectStaff(loggedInStaff.id);
+          } else {
+            // Se l'utente non è un membro staff, disabilita modifiche
+            document.getElementById('selectedStaffName').textContent = `Non Staff (${user.email})`;
+            this.disableEditing();
+          }
+          // Mostra il bottone di logout
+          this.qs('logoutButton').style.display = 'block';
+        } else {
+          // Utente non loggato
+          console.log("Nessun utente loggato.");
+          this.showModal('loginModal');
+          this.selectedStaffId = null;
+          document.getElementById('selectedStaffName').textContent = 'Nessuno';
+          this.state = { scouts: [], staff: [], activities: [], presences: [] }; // Pulisci lo stato
+          this.renderScouts(); this.renderStaff(); this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
+          this.disableEditing();
+          // Nascondi il bottone di logout
+          this.qs('logoutButton').style.display = 'none';
+        }
+      });
 
     // Forms
+    this.qs('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = this.qs('loginEmail').value.trim();
+      const password = this.qs('loginPassword').value.trim();
+      const loginError = this.qs('loginError');
+      loginError.textContent = '';
+      try {
+        await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
+        // L'onAuthStateChanged gestirà l'aggiornamento dell'UI
+      } catch (error) {
+        console.error("Errore login:", error);
+        loginError.textContent = 'Email o password non validi.';
+      }
+    });
+
+    this.qs('logoutButton').addEventListener('click', async () => {
+      try {
+        await signOut(DATA.adapter.auth);
+        // L'onAuthStateChanged gestirà l'aggiornamento dell'UI
+      } catch (error) {
+        console.error("Errore logout:", error);
+        alert('Errore durante il logout. Controlla la console per i dettagli.');
+      }
+    });
+
     this.qs('addScoutForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!this.currentUser) { alert('Devi essere loggato per aggiungere esploratori.'); return; }
       const nome = this.qs('scoutNome').value.trim();
       const cognome = this.qs('scoutCognome').value.trim();
       if (!nome || !cognome) return;
@@ -295,6 +325,7 @@ const UI = {
 
     this.qs('addStaffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!this.currentUser) { alert('Devi essere loggato per aggiungere staff.'); return; }
       const nome = this.qs('staffNome').value.trim();
       const cognome = this.qs('staffCognome').value.trim();
       if (!nome || !cognome) return;
@@ -307,6 +338,7 @@ const UI = {
     if (addActivityForm) {
       addActivityForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!this.currentUser) { alert('Devi essere loggato per aggiungere attività.'); return; }
         const tipo = this.qs('activityTipo').value;
         const data = new Date(this.qs('activityData').value);
         const descrizione = this.qs('activityDescrizione').value.trim();
@@ -328,6 +360,7 @@ const UI = {
     if (editActivityForm) {
       editActivityForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!this.currentUser) { alert('Devi essere loggato per modificare attività.'); return; }
         const id = this.qs('editActivityId').value;
         const tipo = this.qs('editActivityTipo').value;
         const data = new Date(this.qs('editActivityData').value);
@@ -347,6 +380,7 @@ const UI = {
     const confirmDeleteActivityButton = this.qs('confirmDeleteActivityButton');
     if (confirmDeleteActivityButton) {
       confirmDeleteActivityButton.addEventListener('click', async () => {
+        if (!this.currentUser) { alert('Devi essere loggato per eliminare attività.'); return; }
         if (!this.activityToDeleteId) return;
         await DATA.deleteActivity(this.activityToDeleteId);
         this.activityToDeleteId = null;
@@ -361,6 +395,7 @@ const UI = {
 
     this.qs('editStaffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!this.currentUser) { alert('Devi essere loggato per modificare staff.'); return; }
       const id = this.qs('editStaffId').value;
       const nome = this.qs('editStaffNome').value.trim();
       const cognome = this.qs('editStaffCognome').value.trim();
@@ -371,6 +406,7 @@ const UI = {
 
     this.qs('editScoutForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!this.currentUser) { alert('Devi essere loggato per modificare esploratori.'); return; }
       const id = this.qs('editScoutId').value;
       const nome = this.qs('editScoutNome').value.trim();
       const cognome = this.qs('editScoutCognome').value.trim();
@@ -380,6 +416,7 @@ const UI = {
     });
 
     this.qs('confirmDeleteStaffButton').addEventListener('click', async () => {
+      if (!this.currentUser) { alert('Devi essere loggato per eliminare staff.'); return; }
       if (!this.staffToDeleteId) return;
       await DATA.deleteStaff(this.staffToDeleteId);
       this.staffToDeleteId = null;
@@ -392,6 +429,7 @@ const UI = {
     });
 
     this.qs('confirmDeleteScoutButton').addEventListener('click', async () => {
+      if (!this.currentUser) { alert('Devi essere loggato per eliminare esploratori.'); return; }
       if (!this.scoutToDeleteId) return;
       await DATA.deleteScout(this.scoutToDeleteId);
       this.scoutToDeleteId = null;
@@ -402,8 +440,8 @@ const UI = {
     // Dashboard on demand
     this.qs('dashboardTabBtn').addEventListener('click', () => this.renderDashboard());
 
-    // Show staff selection upfront
-    this.showModal('staffSelectionModal');
+    // Show staff selection upfront - RIMOSSO, ora gestito da auth
+    // this.showModal('staffSelectionModal');
 
     // Export globally helpers used in HTML onclick
     window.UI = UI;
@@ -412,6 +450,70 @@ const UI = {
       console.error('Error during initialization:', error);
       alert('Errore durante l\'inizializzazione dell\'app. Controlla la console per i dettagli.');
     }
+  },
+
+  // Nuovo metodo per caricare e renderizzare tutto dopo il login
+  async loadAndRenderAll() {
+    this.state = await DATA.loadAll();
+    console.log('Loaded state:', this.state);
+    this.state = {
+      scouts: this.state.scouts || [],
+      staff: this.state.staff || [],
+      activities: this.state.activities || [],
+      presences: this.state.presences || []
+    };
+    this.normalizeActivitiesDates();
+    this.sortActivities();
+    this.rebuildPresenceIndex();
+    this.setupTabs();
+    this.renderScouts();
+    this.renderStaff();
+    this.renderPresenceTable();
+    this.initMobilePresenceNav();
+    this.renderCalendar();
+    this.renderDashboard(); // Render dashboard on login as well
+  },
+
+  // Metodo per disabilitare/abilitare i campi di modifica
+  disableEditing() {
+    const forms = ['addScoutForm', 'addStaffForm', 'addActivityForm', 'editActivityForm', 'editStaffForm', 'editScoutForm'];
+    forms.forEach(formId => {
+      const form = this.qs(formId);
+      if (form) {
+        Array.from(form.elements).forEach(element => {
+          if (element.tagName !== 'BUTTON') {
+            element.setAttribute('disabled', 'true');
+          } else if (element.type === 'submit') {
+            element.setAttribute('disabled', 'true');
+          }
+        });
+      }
+    });
+    // Disabilita i bottoni di modifica/eliminazione nelle liste
+    document.querySelectorAll('.p-2.text-gray-500.hover:text-green-600').forEach(btn => btn.setAttribute('disabled', 'true'));
+    document.querySelectorAll('.p-2.text-gray-500.hover:text-red-600').forEach(btn => btn.setAttribute('disabled', 'true'));
+    document.querySelectorAll('.presence-select').forEach(sel => sel.setAttribute('disabled', 'true'));
+    document.querySelectorAll('.payment-select').forEach(sel => sel.setAttribute('disabled', 'true'));
+    document.getElementById('staff-info').style.display = 'none'; // Nascondi info staff
+    document.getElementById('staffSelectionModal').classList.remove('show'); // Chiudi modale selezione staff
+  },
+
+  enableEditing() {
+    const forms = ['addScoutForm', 'addStaffForm', 'addActivityForm', 'editActivityForm', 'editStaffForm', 'editScoutForm'];
+    forms.forEach(formId => {
+      const form = this.qs(formId);
+      if (form) {
+        Array.from(form.elements).forEach(element => {
+          element.removeAttribute('disabled');
+        });
+      }
+    });
+    document.querySelectorAll('.p-2.text-gray-500.hover:text-green-600').forEach(btn => btn.removeAttribute('disabled'));
+    document.querySelectorAll('.p-2.text-gray-500.hover:text-red-600').forEach(btn => btn.removeAttribute('disabled'));
+    document.querySelectorAll('.presence-select').forEach(sel => sel.removeAttribute('disabled'));
+    document.querySelectorAll('.payment-select').forEach(sel => sel.removeAttribute('disabled'));
+    document.getElementById('staff-info').style.display = 'block'; // Mostra info staff
+    this.showModal('staffSelectionModal'); // Mostra modale selezione staff all'abilitazione
   },
 
   initMobilePresenceNav() {
@@ -567,10 +669,10 @@ const UI = {
         <div class="p-4 bg-white rounded-lg shadow-sm flex items-center justify-between">
           <p class="font-medium text-lg">${member.nome} ${member.cognome}</p>
           <div class="flex gap-2">
-            <button aria-label="Modifica staff" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditStaffModal('${member.id}')">
+            <button aria-label="Modifica staff" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditStaffModal('${member.id}')" ${this.currentUser ? '' : 'disabled'}>
               ✏️
             </button>
-            <button aria-label="Elimina staff" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteStaff('${member.id}')">
+            <button aria-label="Elimina staff" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteStaff('${member.id}')" ${this.currentUser ? '' : 'disabled'}>
               🗑️
             </button>
           </div>
@@ -584,6 +686,7 @@ const UI = {
     });
   },
   async selectStaff(id) {
+    if (!this.currentUser) return; // Non permettere la selezione se non loggato
     this.selectedStaffId = id;
     const m = this.state.staff.find(s => s.id === id);
     document.getElementById('selectedStaffName').textContent = m ? `${m.nome} ${m.cognome}` : 'Nessuno';
@@ -591,6 +694,7 @@ const UI = {
     this.renderPresenceTable();
   },
   openEditStaffModal(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare staff.'); return; }
     const m = this.state.staff.find(s => s.id === id); if (!m) return;
     this.qs('editStaffId').value = m.id;
     this.qs('editStaffNome').value = m.nome;
@@ -598,6 +702,7 @@ const UI = {
     this.showModal('editStaffModal');
   },
   confirmDeleteStaff(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per eliminare staff.'); return; }
     const m = this.state.staff.find(s => s.id === id); if (!m) return;
     this.staffToDeleteId = id;
     this.qs('staffNameToDelete').textContent = `${m.nome} ${m.cognome}`;
@@ -611,14 +716,15 @@ const UI = {
         <div class="p-4 bg-white rounded-lg shadow-sm flex items-center justify-between">
           <p class="font-medium text-lg">${s.nome} ${s.cognome}</p>
           <div class="flex gap-2">
-            <button aria-label="Modifica esploratore" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditScoutModal('${s.id}')">✏️</button>
-            <button aria-label="Elimina esploratore" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteScout('${s.id}')">🗑️</button>
+            <button aria-label="Modifica esploratore" class="p-2 text-gray-500 hover:text-green-600 rounded-full" onclick="UI.openEditScoutModal('${s.id}')" ${this.currentUser ? '' : 'disabled'}>✏️</button>
+            <button aria-label="Elimina esploratore" class="p-2 text-gray-500 hover:text-red-600 rounded-full" onclick="UI.confirmDeleteScout('${s.id}')" ${this.currentUser ? '' : 'disabled'}>🗑️</button>
           </div>
         </div>
       `);
     });
   },
   openEditScoutModal(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare esploratori.'); return; }
     const s = this.state.scouts.find(x => x.id === id); if (!s) return;
     this.qs('editScoutId').value = s.id;
     this.qs('editScoutNome').value = s.nome;
@@ -626,6 +732,7 @@ const UI = {
     this.showModal('editScoutModal');
   },
   confirmDeleteScout(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per eliminare esploratori.'); return; }
     const s = this.state.scouts.find(x => x.id === id); if (!s) return;
     this.scoutToDeleteId = id;
     this.qs('scoutNameToDelete').textContent = `${s.nome} ${s.cognome}`;
@@ -633,6 +740,7 @@ const UI = {
   },
 
   async updatePresenceCell({ field, value, scoutId, activityId }) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare le presenze.'); return; }
     if (!this.selectedStaffId) return; // disabled without staff
     await DATA.updatePresence({ field, value, scoutId, activityId });
     this.state = await DATA.loadAll();
@@ -645,6 +753,7 @@ const UI = {
   },
 
   async updatePaymentCombined({ value, scoutId, activityId }) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare i pagamenti.'); return; }
     if (!this.selectedStaffId) return;
     if (!value) {
       await DATA.updatePresence({ field: 'pagato', value: false, scoutId, activityId });
@@ -689,7 +798,7 @@ const UI = {
       </td>`;
       acts.forEach(a => {
         const presence = this.getPresence(s.id, a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
-        const disabled = this.selectedStaffId ? '' : 'disabled';
+        const disabled = (this.selectedStaffId && this.currentUser) ? '' : 'disabled'; // Modificato per considerare currentUser
         const needsPayment = parseFloat(a.costo || '0') > 0;
 
         row += `<td class="p-2 border-r border-b border-gray-200">
@@ -699,6 +808,7 @@ const UI = {
               <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
               <option value="NR" ${presence.stato==='NR'?'selected':''}>NR</option>
             </select>
+            <button type="button" id="logoutButton" class="btn-danger mt-4" style="display:none;">Logout</button>
             ${needsPayment ? `
             <div class="payment-section">
               <select class="payment-select mt-1" ${disabled}
