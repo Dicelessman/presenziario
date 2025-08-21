@@ -715,7 +715,7 @@ const UI = {
     });
 
     // Attiva la scheda Dashboard all'avvio
-    setActive('dashboard');
+    setActive('presences');
   },
 
   // ---- Rendering ----
