@@ -218,7 +218,9 @@ const UI = {
   _presenceRank(stato) { return stato === 'Presente' ? 2 : (stato === 'Assente' ? 1 : 0); },
   rebuildPresenceIndex() {
     const map = new Map();
+    const validActivityIds = new Set((this.state.activities || []).map(a => a.id));
     for (const p of (this.state.presences || [])) {
+      if (!validActivityIds.has(p.attivitaId)) continue; // ignora presenze di attività eliminate
       const key = `${p.esploratoreId}_${p.attivitaId}`;
       const existing = map.get(key);
       if (!existing) { map.set(key, p); continue; }
@@ -634,7 +636,9 @@ const UI = {
     if (!this.selectedStaffId) return; // disabled without staff
     await DATA.updatePresence({ field, value, scoutId, activityId });
     this.state = await DATA.loadAll();
-    // re-render only affected parts for simplicity -> full table for robustness
+    // Normalizza attività e ricostruisci indice per coerenza
+    this.normalizeActivitiesDates();
+    this.sortActivities();
     this.rebuildPresenceIndex();
     this.renderPresenceTable();
     this.renderDashboard();
@@ -650,6 +654,8 @@ const UI = {
       await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId });
     }
     this.state = await DATA.loadAll();
+    this.normalizeActivitiesDates();
+    this.sortActivities();
     this.rebuildPresenceIndex();
     this.renderPresenceTable();
     this.renderDashboard();
