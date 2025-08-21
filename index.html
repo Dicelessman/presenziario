@@ -32,24 +32,28 @@
         <span class="text-green-200">Staff Selezionato:</span>
         <span id="selectedStaffName" class="font-semibold">Nessuno</span>
       </div>
+      <span id="loggedInUserEmail" class="text-white text-lg"></span>
       <button type="button" id="logoutButton" class="btn-danger" style="display:none;">Logout</button>
     </header>
+    <nav id="desktopNav" class="bg-green-600 p-2 hidden md:flex justify-center space-x-4">
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="dashboard">Dashboard</button>
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="activities">Attività</button>
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="scouts">Esploratori</button>
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="staff">Staff</button>
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="presences">Presenze</button>
+      <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="auditLogs">Log Audit</button>
+    </nav>
 
     <!-- Nav (Hamburger) -->
-    <nav id="hamburgerMenu" class="bg-green-600">
-      <button class="hamburger-icon text-white p-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
+    <nav id="hamburgerMenu" class="md:hidden">
+      <button class="hamburger-icon text-white p-3">&#9776;</button>
       <div class="nav-links space-y-2">
-        <button id="presenzeTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Presenze</button>
-        <button id="dashboardTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Dashboard</button>
-        <button id="calendarTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Calendario</button>
-        <button id="staffTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Staff</button>
-        <button id="scoutsTabBtn" class="tab-btn p-3 text-center rounded-lg transition-colors duration-200">Esploratori</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="dashboard">Dashboard</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="activities">Attività</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="scouts">Esploratori</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="staff">Staff</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="presences">Presenze</button>
+        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="auditLogs">Log Audit</button>
       </div>
     </nav>
 

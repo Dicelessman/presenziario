@@ -45,7 +45,16 @@ class LocalAdapter {
     };
   }
   persist() { localStorage.setItem('presenziario-state', JSON.stringify(this.state)); }
-  async loadAll() { return structuredClone(this.state); }
+  async loadAll() {
+    const loadedState = JSON.parse(localStorage.getItem('presenziario_data')) || {
+      scouts: [], staff: [], activities: [], presences: [], auditLogs: []
+    };
+    // Ordina i dati caricati
+    loadedState.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    loadedState.staff.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    loadedState.activities.sort((a, b) => new Date(a.data) - new Date(b.data));
+    return { ...loadedState };
+  }
   // Activities
   async addActivity({ tipo, data, descrizione, costo }, currentUser) {
     const id = 'a' + (Math.random().toString(36).slice(2, 8));
@@ -139,9 +148,9 @@ class FirestoreAdapter {
     const [scoutsSnap, staffSnap, actsSnap, presSnap] = await Promise.all([
       getDocs(this.cols.scouts), getDocs(this.cols.staff), getDocs(this.cols.activities), getDocs(this.cols.presences)
     ]);
-    const scouts = scoutsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const staff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const activities = actsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const scouts = scoutsSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    const staff = staffSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    const activities = actsSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.data - b.data);
     const presences = presSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     return { scouts, staff, activities, presences };
   }
@@ -238,9 +247,21 @@ const DATA = {
   async addStaff(p, currentUser) { return await this.adapter.addStaff(p, currentUser); },
   async updateStaff(p, currentUser) { return await this.adapter.updateStaff(p, currentUser); },
   async deleteStaff(id, currentUser) { return await this.adapter.deleteStaff(id, currentUser); },
-  async addScout(p, currentUser) { return await this.adapter.addScout(p, currentUser); },
-  async updateScout(p, currentUser) { return await this.adapter.updateScout(p, currentUser); },
-  async deleteScout(id, currentUser) { return await this.adapter.deleteScout(id, currentUser); },
+  async addScout(p, currentUser) {
+    const result = await this.adapter.addScout(p, currentUser);
+    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    return result;
+  },
+  async updateScout(id, p, currentUser) {
+    const result = await this.adapter.updateScout(id, p, currentUser);
+    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    return result;
+  },
+  async deleteScout(id, currentUser) {
+    const result = await this.adapter.deleteScout(id, currentUser);
+    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
+    return result;
+  },
   async updatePresence(p, currentUser) { return await this.adapter.updatePresence(p, currentUser); },
 };
 
