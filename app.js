@@ -185,6 +185,34 @@ const UI = {
   showModal(id){ this.qs(id).classList.add('show'); },
   closeModal(id){ this.qs(id).classList.remove('show'); },
 
+  // ===== Helpers Date =====
+  // Converte Date, Firestore Timestamp o stringhe legacy in Date JS
+  toJsDate(value) {
+    if (value instanceof Date) return value;
+    if (value && typeof value.toDate === 'function') return value.toDate();
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      if (!isNaN(parsed)) return parsed;
+      const parts = value.split('/');
+      if (parts.length === 3) {
+        const [d, m, y] = parts;
+        const dt = new Date(`${y}-${m}-${d}`);
+        if (!isNaN(dt)) return dt;
+      }
+    }
+    return new Date(value);
+  },
+  formatDisplayDate(value) {
+    const d = this.toJsDate(value);
+    return isNaN(d) ? '' : d.toLocaleDateString('it-IT');
+  },
+  normalizeActivitiesDates() {
+    this.state.activities = (this.state.activities || []).map(a => ({ ...a, data: this.toJsDate(a.data) }));
+  },
+  sortActivities() {
+    this.state.activities.sort((a, b) => this.toJsDate(a.data) - this.toJsDate(b.data));
+  },
+
   async init() {
     try {
       // Toggle Firestore by enabling the next line after adding firebaseConfig:
@@ -202,26 +230,9 @@ const UI = {
         presences: this.state.presences || []
       };
     
-    // Convert string dates to Date objects if needed (for backward compatibility)
-    this.state.activities.forEach(a => {
-      if (typeof a.data === 'string') {
-        try {
-          const [d, m, y] = a.data.split('/');
-          a.data = new Date(`${y}-${m}-${d}`);
-          console.log(`Converted date: ${a.data} -> ${a.data.toISOString()}`);
-        } catch (error) {
-          console.error(`Error converting date ${a.data}:`, error);
-          // Fallback: keep as string for now
-        }
-      }
-    });
-    
-    // Sort activities by date (handle both Date objects and strings)
-    this.state.activities.sort((a, b) => {
-      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
-      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
-      return dateA - dateB;
-    });
+    // Normalizza e ordina le date attività
+    this.normalizeActivitiesDates();
+    this.sortActivities();
 
     // Tabs
     this.setupTabs();
@@ -270,7 +281,8 @@ const UI = {
         if (!tipo || !data || !descrizione) return;
         await DATA.addActivity({ tipo, data, descrizione, costo });
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => a.data - b.data);
+        this.normalizeActivitiesDates();
+        this.sortActivities();
         this.renderPresenceTable();
         this.renderCalendar && this.renderCalendar();
         this.renderDashboard();
@@ -291,7 +303,8 @@ const UI = {
         await DATA.updateActivity({ id, tipo, data, descrizione, costo });
         this.closeModal('editActivityModal');
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => a.data - b.data);
+        this.normalizeActivitiesDates();
+        this.sortActivities();
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -304,7 +317,8 @@ const UI = {
         this.activityToDeleteId = null;
         this.closeModal('confirmDeleteActivityModal');
         this.state = await DATA.loadAll();
-        this.state.activities.sort((a, b) => a.data - b.data);
+        this.normalizeActivitiesDates();
+        this.sortActivities();
         this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
       });
     }
@@ -378,7 +392,7 @@ const UI = {
       acts.forEach((a, idx) => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+        const displayDate = UI.formatDisplayDate(a.data);
         opt.textContent = `${displayDate} — ${a.tipo}`;
         opt.dataset.index = String(idx);
         picker.appendChild(opt);
@@ -423,11 +437,7 @@ const UI = {
   },
 
   getActivitiesSorted() {
-    return [...this.state.activities].sort((a, b) => {
-      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
-      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
-      return dateA - dateB;
-    });
+    return [...this.state.activities].sort((a, b) => this.toJsDate(a.data) - this.toJsDate(b.data));
   },
 
   setupTabs() {
@@ -456,11 +466,7 @@ const UI = {
     }
 
     // Ordina le attività per data
-    const sortedActivities = [...this.state.activities].sort((a, b) => {
-      const dateA = a.data instanceof Date ? a.data : new Date(a.data);
-      const dateB = b.data instanceof Date ? b.data : new Date(b.data);
-      return dateA - dateB;
-    });
+    const sortedActivities = [...this.state.activities].sort((a, b) => this.toJsDate(a.data) - this.toJsDate(b.data));
 
     // Trova la prossima attività (prima data futura o oggi)
     const today = new Date();
@@ -468,7 +474,7 @@ const UI = {
     let nextActivityId = null;
     
     for (const a of sortedActivities) {
-      const activityDate = a.data instanceof Date ? a.data : new Date(a.data);
+      const activityDate = this.toJsDate(a.data);
       if (activityDate >= today) {
         nextActivityId = a.id;
         break;
@@ -481,7 +487,7 @@ const UI = {
       const bgClass = isNext ? 'bg-green-50 border-l-4 border-green-500' : 'bg-white';
       const textClass = isNext ? 'text-green-800' : 'text-green-700';
       
-      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+      const displayDate = UI.formatDisplayDate(a.data);
       list.insertAdjacentHTML('beforeend', `
         <div class="p-4 ${bgClass} rounded-lg shadow-sm flex items-start justify-between gap-4">
           <div>
@@ -501,7 +507,7 @@ const UI = {
     const a = this.state.activities.find(x => x.id === id); if (!a) return;
     this.qs('editActivityId').value = a.id;
     this.qs('editActivityTipo').value = a.tipo;
-    const editDate = a.data instanceof Date ? a.data.toISOString().split('T')[0] : a.data;
+    const editDate = UI.toJsDate(a.data).toISOString().split('T')[0];
     this.qs('editActivityData').value = editDate;
     this.qs('editActivityDescrizione').value = a.descrizione;
     this.qs('editActivityCosto').value = a.costo || '';
@@ -623,7 +629,7 @@ const UI = {
     acts.forEach(a => {
       const presentCount = this.state.presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
-      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+      const displayDate = UI.formatDisplayDate(a.data);
       thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${displayDate}</th>`);
       thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
     });
@@ -694,7 +700,7 @@ const UI = {
     });
 
     const actLabels = activities.map(a => {
-      const displayDate = a.data instanceof Date ? a.data.toLocaleDateString('it-IT') : a.data;
+      const displayDate = UI.formatDisplayDate(a.data);
       return `${a.tipo}: ${a.descrizione}\n${displayDate}`;
     });
     const actData = activities.map(a => presences.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
