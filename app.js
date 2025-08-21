@@ -560,10 +560,7 @@ const UI = {
       }
     });
     // Disabilita i bottoni di modifica/eliminazione nelle liste
-    document.querySelectorAll('.p-2.text-gray-500.hover:text-green-600').forEach(btn => btn.setAttribute('disabled', 'true'));
-    document.querySelectorAll('.p-2.text-gray-500.hover:text-red-600').forEach(btn => btn.setAttribute('disabled', 'true'));
-    document.querySelectorAll('.presence-select').forEach(sel => sel.setAttribute('disabled', 'true'));
-    document.querySelectorAll('.payment-select').forEach(sel => sel.setAttribute('disabled', 'true'));
+    // I bottoni e i selettori sono disabilitati tramite l'attributo 'disabled' nel markup al momento del rendering.
     document.getElementById('staff-info').style.display = 'none'; // Nascondi info staff
     document.getElementById('staffSelectionModal').classList.remove('show'); // Chiudi modale selezione staff
   },
@@ -578,10 +575,7 @@ const UI = {
         });
       }
     });
-    document.querySelectorAll('.p-2.text-gray-500.hover:text-green-600').forEach(btn => btn.removeAttribute('disabled'));
-    document.querySelectorAll('.p-2.text-gray-500.hover:text-red-600').forEach(btn => btn.removeAttribute('disabled'));
-    document.querySelectorAll('.presence-select').forEach(sel => sel.removeAttribute('disabled'));
-    document.querySelectorAll('.payment-select').forEach(sel => sel.removeAttribute('disabled'));
+    // I bottoni e i selettori sono abilitati tramite la rimozione dell'attributo 'disabled' nel markup al momento del rendering.
     document.getElementById('staff-info').style.display = 'block'; // Mostra info staff
     this.showModal('staffSelectionModal'); // Mostra modale selezione staff all'abilitazione
   },
