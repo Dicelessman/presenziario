@@ -687,7 +687,7 @@ const UI = {
         }
       });
       tabContents.forEach(content => {
-        if (content.id === `${tabName}Content`) {
+        if (content.id === `${tabName}Tab`) {
           content.classList.add('active');
         } else {
           content.classList.remove('active');
