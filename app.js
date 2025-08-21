@@ -3,7 +3,6 @@
 // If you want Firestore, fill firebaseConfig and set DATA.useFirestore() below.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
 import {
   getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -106,7 +105,7 @@ class LocalAdapter {
 class FirestoreAdapter {
   constructor() {
     // Firebase config
-    const firebaseConfig = (window && window.FIREBASE_CONFIG) ? window.FIREBASE_CONFIG : {
+    const firebaseConfig = {
       apiKey: "AIzaSyAoa8Rrlplr001PitiFrqBkrbEWL3TWrL4",
       authDomain: "presenziariomaori.firebaseapp.com",
       projectId: "presenziariomaori",
@@ -115,19 +114,6 @@ class FirestoreAdapter {
       appId: "1:556210165397:web:4f434e78fb97f02d116d9c"
     };
     this.app = initializeApp(firebaseConfig);
-
-    // App Check opzionale: abilita se è stata configurata la site key
-    try {
-      const siteKey = (window && window.APP_CHECK_SITE_KEY) || null;
-      if (siteKey) {
-        initializeAppCheck(this.app, {
-          provider: new ReCaptchaV3Provider(siteKey),
-          isTokenAutoRefreshEnabled: true,
-        });
-      }
-    } catch (err) {
-      console.warn('App Check non inizializzato:', err);
-    }
     this.db = getFirestore(this.app);
     this.cols = {
       scouts: collection(this.db, 'scouts'),
