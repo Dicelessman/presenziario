@@ -1002,6 +1002,21 @@ const UI = {
       }
     });
   },
+
+  renderAuditLogs() {
+    const container = this.qs('auditLogsContent');
+    if (!container) return; // Assicurati che il contenitore esista
+    container.innerHTML = '<h3 class="text-xl font-semibold text-gray-700 mb-4">Log di Audit (in costruzione)</h3><p>Qui verranno visualizzati i log di tutte le modifiche.</p>';
+    // Qui potrai aggiungere la logica per recuperare e visualizzare i log di audit da this.state.auditLogs
+    // Ad esempio:
+    // const auditList = document.createElement('div');
+    // this.state.auditLogs.forEach(log => {
+    //   const logEntry = document.createElement('p');
+    //   logEntry.textContent = `[${new Date(log.timestamp).toLocaleString()}] ${log.action} ${log.entityType} ${log.entityId} by ${log.userEmail}`;
+    //   auditList.appendChild(logEntry);
+    // });
+    // container.appendChild(auditList);
+  },
 };
 
 // Kickoff
