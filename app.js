@@ -321,6 +321,21 @@ const UI = {
       // Toggle Firestore by enabling the next line after adding firebaseConfig:
       DATA.useFirestore();
 
+      console.log('UI.init: Initializing...');
+      const hamburgerIcon = document.querySelector('.hamburger-icon');
+      const navLinks = document.querySelector('.nav-links');
+      console.log('UI.init: hamburgerIcon element', hamburgerIcon);
+      console.log('UI.init: navLinks element', navLinks);
+
+      if (hamburgerIcon && navLinks) {
+        hamburgerIcon.addEventListener('click', () => {
+          console.log('Hamburger icon clicked!');
+          navLinks.classList.toggle('active');
+        });
+      } else {
+        console.warn('UI.init: Hamburger elements not found!');
+      }
+
       // Inizializza Firebase Auth
       onAuthStateChanged(DATA.adapter.auth, async (user) => {
         this.currentUser = user;
@@ -809,11 +824,14 @@ const UI = {
     if (!this.currentUser) { alert('Devi essere loggato per modificare le presenze.'); return; }
     if (!this.selectedStaffId) return; // disabled without staff
     await DATA.updatePresence({ field, value, scoutId, activityId }, this.currentUser);
+    console.log('updatePresenceCell: Before loadAll, this.state.presences', structuredClone(this.state.presences));
     this.state = await DATA.loadAll();
+    console.log('updatePresenceCell: After loadAll, this.state.presences', structuredClone(this.state.presences));
     // Normalizza attività e ricostruisci indice per coerenza
     this.normalizeActivitiesDates();
     this.sortActivities();
     this.rebuildPresenceIndex();
+    console.log('updatePresenceCell: After rebuildPresenceIndex, this._presenceIndex', Array.from(this._presenceIndex.values()));
     this.renderPresenceTable();
     this.renderDashboard();
   },
@@ -828,10 +846,13 @@ const UI = {
       await DATA.updatePresence({ field: 'pagato', value: true, scoutId, activityId }, this.currentUser);
       await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId }, this.currentUser);
     }
+    console.log('updatePaymentCombined: Before loadAll, this.state.presences', structuredClone(this.state.presences));
     this.state = await DATA.loadAll();
+    console.log('updatePaymentCombined: After loadAll, this.state.presences', structuredClone(this.state.presences));
     this.normalizeActivitiesDates();
     this.sortActivities();
     this.rebuildPresenceIndex();
+    console.log('updatePaymentCombined: After rebuildPresenceIndex, this._presenceIndex', Array.from(this._presenceIndex.values()));
     this.renderPresenceTable();
     this.renderDashboard();
   },
