@@ -679,6 +679,7 @@ const UI = {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const setActive = (tabName) => {
+      console.log(`setActive chiamato con: ${tabName}`);
       tabButtons.forEach(button => {
         if (button.dataset.tab === tabName) {
           button.classList.add('bg-green-600');
@@ -687,6 +688,7 @@ const UI = {
         }
       });
       tabContents.forEach(content => {
+        console.log(`Controllo contenuto: ${content.id}, target: ${tabName}Tab`);
         if (content.id === `${tabName}Tab`) {
           content.classList.add('active');
         } else {
