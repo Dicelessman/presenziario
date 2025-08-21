@@ -543,9 +543,6 @@ const UI = {
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderScouts(); this.renderPresenceTable(); this.renderDashboard();
     });
 
-    // Dashboard on demand
-    this.qs('dashboardTabBtn').addEventListener('click', () => this.renderDashboard());
-
     // Show staff selection upfront - RIMOSSO, ora gestito da auth
     // this.showModal('staffSelectionModal');
 
@@ -681,16 +678,44 @@ const UI = {
   setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    const setActive = (btnId) => {
-      tabButtons.forEach(b => b.classList.remove('bg-green-600'));
-      tabContents.forEach(c => c.classList.remove('active'));
-      document.getElementById(btnId).classList.add('bg-green-600');
-      document.getElementById(btnId.replace('Btn', '')).classList.add('active');
-      document.querySelector('.nav-links').classList.remove('active');
+    const setActive = (tabName) => {
+      tabButtons.forEach(button => {
+        if (button.dataset.tab === tabName) {
+          button.classList.add('bg-green-600');
+        } else {
+          button.classList.remove('bg-green-600');
+        }
+      });
+      tabContents.forEach(content => {
+        if (content.id === `${tabName}Content`) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+      // Chiudi il menu hamburger se è aperto
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks) { navLinks.classList.remove('active'); }
     };
-    // default
-    setActive('presenzeTabBtn');
-    tabButtons.forEach(btn => btn.addEventListener('click', () => setActive(btn.id)));
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const tabName = e.currentTarget.dataset.tab;
+        setActive(tabName);
+        // Esegui il rendering della pagina appropriata
+        switch (tabName) {
+          case 'dashboard': this.renderDashboard(); break;
+          case 'activities': this.renderCalendar(); break;
+          case 'scouts': this.renderScouts(); break;
+          case 'staff': this.renderStaff(); break;
+          case 'presences': this.renderPresenceTable(); break;
+          case 'auditLogs': this.renderAuditLogs(); break;
+        }
+      });
+    });
+
+    // Attiva la scheda Dashboard all'avvio
+    setActive('dashboard');
   },
 
   // ---- Rendering ----
