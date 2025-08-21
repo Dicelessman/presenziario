@@ -635,8 +635,9 @@ const UI = {
     await DATA.updatePresence({ field, value, scoutId, activityId });
     this.state = await DATA.loadAll();
     // re-render only affected parts for simplicity -> full table for robustness
-    // Dopo update, ricarico e ricostruisco indice presenze
-    this.renderPresenceTable(); this.renderDashboard();
+    this.rebuildPresenceIndex();
+    this.renderPresenceTable();
+    this.renderDashboard();
   },
 
   async updatePaymentCombined({ value, scoutId, activityId }) {
@@ -649,7 +650,9 @@ const UI = {
       await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId });
     }
     this.state = await DATA.loadAll();
-    this.renderPresenceTable(); this.renderDashboard();
+    this.rebuildPresenceIndex();
+    this.renderPresenceTable();
+    this.renderDashboard();
   },
 
   renderPresenceTable() {
