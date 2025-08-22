@@ -31,22 +31,13 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 /* Presence table */
 .presence-table { width:100%; border-collapse: separate; border-spacing:0; }
 .presence-table th, .presence-table td { padding:.75rem; border:1px solid #e5e7eb; text-align:center; vertical-align: top; }
-.presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; background:#f8fafc; box-shadow: 0 1px 0 rgba(0,0,0,.05); }
-.presence-table tbody tr:nth-child(even) { background:#f9fafb; }
-.presence-table tbody tr:hover { background:#f0fdf4; }
+.presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; background:#f8fafc; }
 .presence-table td select { border:none; background:transparent; padding:.25rem; border-radius:.5rem; text-align:center;
   appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer;
 }
 .presence-select { color:#22c55e; } /* green-500 */
 .payment-select { color:#16a34a; } /* green-600 */
-.payment-badge { display:inline-block; margin-top:.25rem; padding:.125rem .5rem; border-radius:9999px; font-size:.75rem; font-weight:600; }
-.payment-badge.paid { background:#dcfce7; color:#166534; }
-.payment-badge.unpaid { background:#fee2e2; color:#991b1b; }
 .payment-section { display:flex; flex-direction:column; align-items:center; margin-top:.5rem; font-size:.875rem; }
-
-/* Column highlight */
-.col-highlight { background:#ecfdf5 !important; }
-th.col-highlight { background:#10b981 !important; color:#fff !important; }
 
 /* Edge shadows for horizontal scroll */
 #presenceTableContainer { position: relative; }
