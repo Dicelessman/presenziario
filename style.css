@@ -22,8 +22,9 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 #hamburgerMenu { display:flex; flex-direction: column; align-items: flex-end; padding: .5rem 1rem; }
 #hamburgerMenu .nav-links { display:none; flex-direction: column; width:100%; margin:.5rem 0 1rem; }
 #hamburgerMenu .nav-links.active { display:flex; }
-#hamburgerMenu .tab-btn { width:100%; text-align:left; color:white; }
-#hamburgerMenu .tab-btn.bg-green-600 { background: #16a34a; }
+#hamburgerMenu .tab-btn { width:100%; text-align:left; color:white; background: #15803d; border: none; font-weight: 600; }
+#hamburgerMenu .tab-btn:hover { background: #16a34a; }
+#hamburgerMenu .tab-btn.bg-green-600 { background: #16a34a; font-weight: 700; }
 
 /* Calendar list */
 #calendarList > div { border-left: 4px solid #16a34a; padding-left: .75rem; }
