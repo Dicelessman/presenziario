@@ -25,15 +25,28 @@
     <!-- Header -->
     <header class="bg-green-700 text-white p-6 rounded-t-xl flex justify-between items-center">
       <div class="flex flex-col">
-        <h1 class="text-3xl font-bold">Scout Maori</h1>
-        <p class="text-green-200 mt-1">Registro Presenze</p>
+        <h1 class="text-3xl font-bold">Reparto Maori</h1>
+        <p class="text-green-200 mt-1">Presenze</p>
       </div>
-      <div id="staff-info" class="text-right">
-        <span class="text-green-200">Staff Selezionato:</span>
-        <span id="selectedStaffName" class="font-semibold">Nessuno</span>
+      <div id="staff-info" class="text-right flex flex-col">
+        <span class="text-green-200 text-sm">Staff Selezionato:</span>
+        <span id="selectedStaffName" class="font-semibold text-lg">Nessuno</span>
       </div>
-      <span id="loggedInUserEmail" class="text-white text-lg"></span>
-      <button type="button" id="logoutButton" class="btn-danger" style="display:none;">Logout</button>
+      <div class="flex items-center gap-2">
+        <span id="loggedInUserEmail" class="text-white text-lg"></span>
+        <button type="button" id="logoutButton" class="btn-danger" style="display:none;">Logout</button>
+        <nav id="hamburgerMenu" class="md:hidden">
+          <button class="hamburger-icon text-white p-3">&#9776;</button>
+          <div class="nav-links space-y-2">
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="dashboard">Dashboard</button>
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="calendar">Calendario</button>
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="scouts">Esploratori</button>
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="staff">Staff</button>
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="presences">Presenze</button>
+            <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="auditLogs">Log Audit</button>
+          </div>
+        </nav>
+      </div>
     </header>
     <nav id="desktopNav" class="bg-green-600 p-2 hidden md:flex justify-center space-x-4">
       <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="dashboard">Dashboard</button>
@@ -42,19 +55,6 @@
       <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="staff">Staff</button>
       <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="presences">Presenze</button>
       <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700" data-tab="auditLogs">Log Audit</button>
-    </nav>
-
-    <!-- Nav (Hamburger) -->
-    <nav id="hamburgerMenu" class="md:hidden">
-      <button class="hamburger-icon text-white p-3">&#9776;</button>
-      <div class="nav-links space-y-2">
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="dashboard">Dashboard</button>
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="calendar">Calendario</button>
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="scouts">Esploratori</button>
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="staff">Staff</button>
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="presences">Presenze</button>
-        <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="auditLogs">Log Audit</button>
-      </div>
     </nav>
 
     <!-- Main -->
