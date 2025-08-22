@@ -297,7 +297,17 @@ const UI = {
   },
   formatDisplayDate(value) {
     const d = this.toJsDate(value);
-    return isNaN(d) ? '' : d.toLocaleDateString('it-IT');
+    if (isNaN(d)) return '';
+    
+    const giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+    const giorno = giorni[d.getDay()];
+    const data = d.toLocaleDateString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+    
+    return `${giorno} ${data}`;
   },
   normalizeActivitiesDates() {
     this.state.activities = (this.state.activities || []).map(a => ({ ...a, data: this.toJsDate(a.data) }));
