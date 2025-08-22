@@ -434,8 +434,9 @@ const UI = {
       if (!this.currentUser) { alert('Devi essere loggato per aggiungere staff.'); return; }
       const nome = this.qs('staffNome').value.trim();
       const cognome = this.qs('staffCognome').value.trim();
-      if (!nome || !cognome) return;
-      await DATA.addStaff({ nome, cognome }, this.currentUser);
+      const email = this.qs('staffEmail').value.trim();
+      if (!nome || !cognome || !email) return;
+      await DATA.addStaff({ nome, cognome, email }, this.currentUser);
       this.state = await DATA.loadAll();
       this.renderStaff(); e.target.reset();
     });
@@ -505,7 +506,8 @@ const UI = {
       const id = this.qs('editStaffId').value;
       const nome = this.qs('editStaffNome').value.trim();
       const cognome = this.qs('editStaffCognome').value.trim();
-      await DATA.updateStaff({ id, nome, cognome }, this.currentUser);
+      const email = this.qs('editStaffEmail').value.trim();
+      await DATA.updateStaff({ id, nome, cognome, email }, this.currentUser);
       this.closeModal('editStaffModal');
       this.state = await DATA.loadAll(); this.rebuildPresenceIndex(); this.renderStaff();
     });
@@ -828,6 +830,7 @@ const UI = {
     this.qs('editStaffId').value = m.id;
     this.qs('editStaffNome').value = m.nome;
     this.qs('editStaffCognome').value = m.cognome;
+    this.qs('editStaffEmail').value = m.email || '';
     this.showModal('editStaffModal');
   },
   confirmDeleteStaff(id) {
