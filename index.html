@@ -34,7 +34,6 @@
       </div>
       <div class="flex items-center gap-2">
         <span id="loggedInUserEmail" class="text-white text-lg"></span>
-        <button type="button" id="logoutButton" class="btn-danger" style="display:none;">[->]</button>
         <nav id="hamburgerMenu" class="md:hidden">
           <button class="hamburger-icon text-white p-3">&#9776;</button>
           <div class="nav-links space-y-2">
@@ -44,6 +43,8 @@
             <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="staff">Staff</button>
             <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="presences">Presenze</button>
             <button type="button" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800" data-tab="auditLogs">Log Audit</button>
+            <hr class="border-white/20 my-2">
+            <button type="button" id="logoutButton" class="tab-btn p-2 rounded-lg text-white hover:bg-red-600" style="display:none;">Logout</button>
           </div>
         </nav>
       </div>
