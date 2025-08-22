@@ -25,6 +25,25 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 #hamburgerMenu .tab-btn { width:100%; text-align:left; color:white; background: #15803d; border: none; font-weight: 600; }
 #hamburgerMenu .tab-btn:hover { background: #16a34a; }
 #hamburgerMenu .tab-btn.bg-green-600 { background: #16a34a; font-weight: 700; }
+.hamburger-icon { 
+  background: #15803d; 
+  color: white; 
+  font-size: 1.5rem; 
+  font-weight: bold; 
+  border: 2px solid white; 
+  border-radius: 0.5rem; 
+  min-width: 3rem; 
+  min-height: 3rem; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+}
+.hamburger-icon:hover { 
+  background: #16a34a; 
+  transform: scale(1.05); 
+  transition: all 0.2s ease; 
+}
 
 /* Calendar list */
 #calendarList > div { border-left: 4px solid #16a34a; padding-left: .75rem; }
