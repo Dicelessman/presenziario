@@ -102,6 +102,16 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: none;
 .payment-select option[value="Satispay"] { color: #ea580c; } /* arancione */
 .payment-select option[value="Bonifico"] { color: #2563eb; } /* blu */
 
+/* Colori per il testo selezionato nelle select */
+.presence-select[data-selected="Presente"] { color: #16a34a; }
+.presence-select[data-selected="Assente"] { color: #dc2626; }
+.presence-select[data-selected="NR"] { color: #2563eb; }
+
+.payment-select[data-selected=""] { color: #dc2626; }
+.payment-select[data-selected="Contanti"] { color: #16a34a; }
+.payment-select[data-selected="Satispay"] { color: #ea580c; }
+.payment-select[data-selected="Bonifico"] { color: #2563eb; }
+
 /* Buttons */
 .btn-primary { background:#16a34a; color:white; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; }
 .btn-primary:hover { filter: brightness(.95); }

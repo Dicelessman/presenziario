@@ -886,6 +886,13 @@ const UI = {
     console.log('updatePresenceCell: After rebuildPresenceIndex, this._presenceIndex', Array.from(this._presenceIndex.values()));
     this.renderPresenceTable();
     this.renderDashboard();
+    // Aggiorna l'attributo data-selected sulla select modificata
+    if (field === 'stato') {
+      const select = document.querySelector(`select[onchange*="scoutId:'${scoutId}'"][onchange*="activityId:'${activityId}'"]`);
+      if (select && select.classList.contains('presence-select')) {
+        select.setAttribute('data-selected', value);
+      }
+    }
   },
 
   async updatePaymentCombined({ value, scoutId, activityId }) {
@@ -907,6 +914,11 @@ const UI = {
     console.log('updatePaymentCombined: After rebuildPresenceIndex, this._presenceIndex', Array.from(this._presenceIndex.values()));
     this.renderPresenceTable();
     this.renderDashboard();
+    // Aggiorna l'attributo data-selected sulla select di pagamento modificata
+    const select = document.querySelector(`select[onchange*="scoutId:'${scoutId}'"][onchange*="activityId:'${activityId}'"]`);
+    if (select && select.classList.contains('payment-select')) {
+      select.setAttribute('data-selected', value);
+    }
   },
 
   renderPresenceTable() {
@@ -954,7 +966,7 @@ const UI = {
         
         row += `<td class="p-2 border-r border-b border-gray-200">
           <div class="flex flex-col items-center gap-1">
-            <select class="presence-select" ${disabled}
+            <select class="presence-select" data-selected="${presence.stato}" ${disabled}
               onchange="UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
               <option value="Presente" ${presence.stato==='Presente'?'selected':''}>P</option>
               <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
@@ -962,7 +974,7 @@ const UI = {
             </select>
             ${needsPayment ? `
             <div class="payment-section">
-              <select class="payment-select mt-1" ${disabled}
+              <select class="payment-select mt-1" data-selected="${presence.pagato ? (presence.tipoPagamento || 'Pagato') : ''}" ${disabled}
                 onchange="UI.updatePaymentCombined({value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
                 <option value="" ${!presence.pagato?'selected':''}>Non Pagato</option>
                 <option value="Contanti" ${(presence.pagato && presence.tipoPagamento==='Contanti')?'selected':''}>Contanti</option>
