@@ -911,6 +911,18 @@ const UI = {
     const thNames = this.qs('tableHeaderNames');
     body.innerHTML = ''; thDates.innerHTML = '<th rowspan="2" class="sticky left-0 !bg-green-700 !text-white !p-4 text-left">Esploratore</th>'; thNames.innerHTML='';
 
+    // Empty states
+    if (!this.state.activities.length) {
+      body.innerHTML = '<tr><td class="p-4 text-gray-500" colspan="1">Nessuna attività pianificata.</td></tr>';
+      this._setupPresenceScrollShadows();
+      return;
+    }
+    if (!this.state.scouts.length) {
+      body.innerHTML = '<tr><td class="p-4 text-gray-500" colspan="1">Nessun esploratore presente.</td></tr>';
+      this._setupPresenceScrollShadows();
+      return;
+    }
+
     // headers
     const totalScouts = this.state.scouts.length;
     const acts = this.getActivitiesSorted();
@@ -935,23 +947,27 @@ const UI = {
         const presence = this.getPresence(s.id, a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
         const disabled = (this.selectedStaffId && this.currentUser) ? '' : 'disabled'; // Modificato per considerare currentUser
         const needsPayment = parseFloat(a.costo || '0') > 0;
+        const badge = needsPayment ? (presence.pagato ? `<span class="payment-badge paid">${presence.tipoPagamento || 'Pagato'}</span>` : `<span class="payment-badge unpaid">Non pagato</span>`) : '';
+        const statusTitle = presence.stato === 'Presente' ? 'Presente' : (presence.stato === 'Assente' ? 'Assente' : 'Non Rilevato');
 
         row += `<td class="p-2 border-r border-b border-gray-200">
           <div class="flex flex-col items-center gap-1">
-            <select class="presence-select" ${disabled} onchange="UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
+            <select class="presence-select" title="Stato: ${statusTitle}" ${disabled}
+              onchange="UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
               <option value="Presente" ${presence.stato==='Presente'?'selected':''}>P</option>
               <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
               <option value="NR" ${presence.stato==='NR'?'selected':''}>NR</option>
             </select>
             ${needsPayment ? `
             <div class="payment-section">
-              <select class="payment-select mt-1" ${disabled}
+              <select class="payment-select mt-1" title="Pagamento" ${disabled}
                 onchange="UI.updatePaymentCombined({value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
                 <option value="" ${!presence.pagato?'selected':''}>Non Pagato</option>
                 <option value="Contanti" ${(presence.pagato && presence.tipoPagamento==='Contanti')?'selected':''}>Contanti</option>
                 <option value="Satispay" ${(presence.pagato && presence.tipoPagamento==='Satispay')?'selected':''}>Satispay</option>
                 <option value="Bonifico" ${(presence.pagato && presence.tipoPagamento==='Bonifico')?'selected':''}>Bonifico</option>
               </select>
+              ${badge}
             </div>` : ''}
           </div>
         </td>`;
@@ -960,6 +976,52 @@ const UI = {
       body.insertAdjacentHTML('beforeend', row);
     });
     this._scrollToSelectedActivity && this._scrollToSelectedActivity();
+    this._setupPresenceScrollShadows();
+    this._setupPresenceColumnHover();
+  },
+
+  _setupPresenceScrollShadows() {
+    const container = document.getElementById('presenceTableContainer');
+    if (!container) return;
+    const updateShadows = () => {
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft > 0) container.classList.add('scroll-shadow-left'); else container.classList.remove('scroll-shadow-left');
+      if (container.scrollLeft < maxScroll - 1) container.classList.add('scroll-shadow-right'); else container.classList.remove('scroll-shadow-right');
+    };
+    updateShadows();
+    container.removeEventListener('scroll', container._shadowHandler || (()=>{}));
+    container._shadowHandler = () => updateShadows();
+    container.addEventListener('scroll', container._shadowHandler, { passive: true });
+    window.addEventListener('resize', updateShadows, { passive: true });
+  },
+
+  _setupPresenceColumnHover() {
+    const table = document.querySelector('.presence-table');
+    if (!table) return;
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const highlightAtIndex = (idx, on) => {
+      rows.forEach(tr => {
+        const cells = Array.from(tr.children);
+        const cell = cells[idx];
+        if (cell) cell.classList.toggle('col-highlight', on);
+      });
+    };
+    // Clear previous listeners by cloning tbody
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    Array.from(tbody.querySelectorAll('td')).forEach((td) => {
+      td.addEventListener('mouseenter', (e) => {
+        const cell = e.currentTarget;
+        const index = Array.from(cell.parentElement.children).indexOf(cell);
+        // +1 to account for the sticky name column at index 0 already included
+        highlightAtIndex(index, true);
+      });
+      td.addEventListener('mouseleave', (e) => {
+        const cell = e.currentTarget;
+        const index = Array.from(cell.parentElement.children).indexOf(cell);
+        highlightAtIndex(index, false);
+      });
+    });
   },
 
   // ---- Dashboard ----
