@@ -385,7 +385,7 @@ const UI = {
           this.selectedStaffId = null;
           document.getElementById('selectedStaffName').textContent = 'Nessuno';
           this.state = { scouts: [], staff: [], activities: [], presences: [] }; // Pulisci lo stato
-          this.renderScouts(); this.renderStaff(); this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard();
+          this.renderScouts(); this.renderStaff(); this.renderPresenceTable(); this.renderCalendar(); this.renderDashboard(); this.renderAuditLogs();
           this.disableEditing();
           // Nascondi il bottone di logout
           this.qs('logoutButton').style.display = 'none';
@@ -716,8 +716,8 @@ const UI = {
       });
     });
 
-    // Attiva la scheda Dashboard all'avvio
-    setActive('presences');
+    // Attiva la scheda Presenze all'avvio
+    setActive('presences'); // Assicurati che il tab presenze sia attivo all'avvio
   },
 
   // ---- Rendering ----
