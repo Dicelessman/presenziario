@@ -930,8 +930,8 @@ const UI = {
       const presentCount = this.getDedupedPresences().filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
       const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
       const displayDate = UI.formatDisplayDate(a.data);
-      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-600 text-white font-semibold sticky top-0">${displayDate}</th>`);
-      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-500 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
+      thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-700 text-white font-semibold sticky top-0">${displayDate}</th>`);
+      thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-700 text-white font-semibold sticky top-0">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
     });
 
     // rows
