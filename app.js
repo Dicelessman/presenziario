@@ -1084,7 +1084,7 @@ const UI = {
       `;
       
       sortedLogs.forEach(log => {
-        const timestamp = new Date(log.timestamp).toLocaleString('it-IT');
+        const timestamp = log.timestamp ? new Date(log.timestamp.toDate ? log.timestamp.toDate() : log.timestamp).toLocaleString('it-IT') : 'Data non disponibile';
         const actionIcon = this.getActionIcon(log.action);
         const actionColor = this.getActionColor(log.action);
         const entityLabel = this.getEntityLabel(log.entityType);
@@ -1098,7 +1098,6 @@ const UI = {
                   <div class="flex items-center space-x-2 mb-1">
                     <span class="font-semibold text-gray-800">${this.getActionLabel(log.action)}</span>
                     <span class="text-sm text-gray-500">${entityLabel}</span>
-                    ${log.entityId ? `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${log.entityId}</span>` : ''}
                   </div>
                   ${log.details ? `<div class="text-sm text-gray-600 mb-1">${this.formatDetails(log.details)}</div>` : ''}
                   <div class="text-xs text-gray-400">
