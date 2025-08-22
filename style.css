@@ -31,7 +31,7 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvet
 /* Presence table */
 .presence-table { width:100%; border-collapse: separate; border-spacing:0; }
 .presence-table th, .presence-table td { padding:.75rem; border:1px solid #e5e7eb; text-align:center; vertical-align: top; }
-.presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; background:#f8fafc; }
+.presence-table thead th { font-weight:600; position:sticky; top:0; z-index:10; background:#065f46; color:#ffffff; box-shadow:none; }
 .presence-table td select { border:none; background:transparent; padding:.25rem; border-radius:.5rem; text-align:center;
   appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer;
 }
