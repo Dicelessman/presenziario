@@ -577,6 +577,7 @@ const UI = {
     this.initMobilePresenceNav();
     this.renderCalendar();
     this.renderDashboard(); // Render dashboard on login as well
+    this.renderAuditLogs(); // Render audit logs
   },
 
   // Metodo per disabilitare/abilitare i campi di modifica
@@ -1039,17 +1040,191 @@ const UI = {
 
   renderAuditLogs() {
     const container = this.qs('auditLogsContent');
-    if (!container) return; // Assicurati che il contenitore esista
-    container.innerHTML = '<h3 class="text-xl font-semibold text-gray-700 mb-4">Log di Audit (in costruzione)</h3><p>Qui verranno visualizzati i log di tutte le modifiche.</p>';
-    // Qui potrai aggiungere la logica per recuperare e visualizzare i log di audit da this.state.auditLogs
-    // Ad esempio:
-    // const auditList = document.createElement('div');
-    // this.state.auditLogs.forEach(log => {
-    //   const logEntry = document.createElement('p');
-    //   logEntry.textContent = `[${new Date(log.timestamp).toLocaleString()}] ${log.action} ${log.entityType} ${log.entityId} by ${log.userEmail}`;
-    //   auditList.appendChild(logEntry);
-    // });
-    // container.appendChild(auditList);
+    if (!container) return;
+    
+    // Mostra loading
+    container.innerHTML = '<div class="flex items-center justify-center p-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div><span class="ml-2 text-gray-600">Caricamento log...</span></div>';
+    
+    // Carica i log di audit da Firestore
+    this.loadAuditLogs().then(logs => {
+      if (!logs || logs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center p-8">
+            <div class="text-gray-400 text-6xl mb-4">📋</div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Nessun log di audit</h3>
+            <p class="text-gray-500">I log di audit appariranno qui quando verranno effettuate modifiche ai dati.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Ordina per timestamp (più recenti prima)
+      const sortedLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      let html = `
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-700">Log di Audit (${logs.length})</h3>
+          <div class="flex gap-2">
+            <select id="auditFilter" class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+              <option value="">Tutti i tipi</option>
+              <option value="create">Creazioni</option>
+              <option value="update">Modifiche</option>
+              <option value="delete">Eliminazioni</option>
+            </select>
+            <select id="auditEntityFilter" class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+              <option value="">Tutte le entità</option>
+              <option value="scout">Esploratori</option>
+              <option value="staff">Staff</option>
+              <option value="activity">Attività</option>
+              <option value="presence">Presenze</option>
+            </select>
+          </div>
+        </div>
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+      `;
+      
+      sortedLogs.forEach(log => {
+        const timestamp = new Date(log.timestamp).toLocaleString('it-IT');
+        const actionIcon = this.getActionIcon(log.action);
+        const actionColor = this.getActionColor(log.action);
+        const entityLabel = this.getEntityLabel(log.entityType);
+        
+        html += `
+          <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 ${actionColor} hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start space-x-3">
+                <div class="text-2xl">${actionIcon}</div>
+                <div class="flex-1">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <span class="font-semibold text-gray-800">${this.getActionLabel(log.action)}</span>
+                    <span class="text-sm text-gray-500">${entityLabel}</span>
+                    ${log.entityId ? `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${log.entityId}</span>` : ''}
+                  </div>
+                  ${log.details ? `<div class="text-sm text-gray-600 mb-1">${this.formatDetails(log.details)}</div>` : ''}
+                  <div class="text-xs text-gray-400">
+                    <span class="font-medium">${log.userEmail || 'Sistema'}</span>
+                    <span class="mx-2">•</span>
+                    <span>${timestamp}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+      
+      // Aggiungi event listeners per i filtri
+      this.setupAuditFilters(sortedLogs);
+    }).catch(error => {
+      console.error('Errore nel caricamento dei log di audit:', error);
+      container.innerHTML = `
+        <div class="text-center p-8">
+          <div class="text-red-400 text-6xl mb-4">⚠️</div>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">Errore nel caricamento</h3>
+          <p class="text-gray-500">Impossibile caricare i log di audit. Riprova più tardi.</p>
+        </div>
+      `;
+    });
+  },
+  
+  async loadAuditLogs() {
+    if (DATA.adapter.constructor.name === 'FirestoreAdapter') {
+      try {
+        const auditSnap = await getDocs(DATA.adapter.cols.auditLogs);
+        return auditSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (error) {
+        console.error('Errore nel caricamento dei log di audit:', error);
+        return [];
+      }
+    } else {
+      // Per LocalAdapter, restituisci array vuoto (i log sono solo in Firestore)
+      return [];
+    }
+  },
+  
+  getActionIcon(action) {
+    const icons = {
+      create: '➕',
+      update: '✏️',
+      delete: '🗑️'
+    };
+    return icons[action] || '📝';
+  },
+  
+  getActionColor(action) {
+    const colors = {
+      create: 'border-green-500',
+      update: 'border-blue-500',
+      delete: 'border-red-500'
+    };
+    return colors[action] || 'border-gray-500';
+  },
+  
+  getActionLabel(action) {
+    const labels = {
+      create: 'Creazione',
+      update: 'Modifica',
+      delete: 'Eliminazione'
+    };
+    return labels[action] || action;
+  },
+  
+  getEntityLabel(entityType) {
+    const labels = {
+      scout: 'Esploratore',
+      staff: 'Staff',
+      activity: 'Attività',
+      presence: 'Presenza'
+    };
+    return labels[entityType] || entityType;
+  },
+  
+  formatDetails(details) {
+    if (typeof details === 'string') return details;
+    if (typeof details === 'object') {
+      const parts = [];
+      if (details.field) parts.push(`Campo: ${details.field}`);
+      if (details.oldValue !== undefined) parts.push(`Da: ${details.oldValue}`);
+      if (details.newValue !== undefined) parts.push(`A: ${details.newValue}`);
+      if (details.nome) parts.push(`Nome: ${details.nome}`);
+      if (details.cognome) parts.push(`Cognome: ${details.cognome}`);
+      if (details.email) parts.push(`Email: ${details.email}`);
+      if (details.tipo) parts.push(`Tipo: ${details.tipo}`);
+      if (details.descrizione) parts.push(`Descrizione: ${details.descrizione}`);
+      return parts.join(' • ');
+    }
+    return JSON.stringify(details);
+  },
+  
+  setupAuditFilters(logs) {
+    const filterSelect = document.getElementById('auditFilter');
+    const entityFilterSelect = document.getElementById('auditEntityFilter');
+    const logContainer = document.querySelector('#auditLogsContent .space-y-3');
+    
+    if (!filterSelect || !entityFilterSelect || !logContainer) return;
+    
+    const filterLogs = () => {
+      const actionFilter = filterSelect.value;
+      const entityFilter = entityFilterSelect.value;
+      
+      const filteredLogs = logs.filter(log => {
+        const matchesAction = !actionFilter || log.action === actionFilter;
+        const matchesEntity = !entityFilter || log.entityType === entityFilter;
+        return matchesAction && matchesEntity;
+      });
+      
+      // Aggiorna la visualizzazione
+      const logElements = logContainer.children;
+      Array.from(logElements).forEach((element, index) => {
+        element.style.display = index < filteredLogs.length ? 'block' : 'none';
+      });
+    };
+    
+    filterSelect.addEventListener('change', filterLogs);
+    entityFilterSelect.addEventListener('change', filterLogs);
   },
 };
 
