@@ -1,0 +1,148 @@
+<!-- Modali condivisi per tutte le pagine -->
+
+<!-- Modale Selezione Staff -->
+<div id="staffSelectionModal" class="modal">
+  <div class="modal-content max-w-lg mx-auto">
+    <h4 class="text-xl font-semibold text-gray-700">Seleziona un membro dello Staff</h4>
+    <p class="text-gray-600 mb-4">Seleziona uno staff per abilitare le modifiche.</p>
+    <div id="staffListForSelection" class="space-y-2"></div>
+  </div>
+</div>
+
+<!-- Modale Modifica Staff -->
+<div id="editStaffModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto">
+    <h4 class="text-xl font-semibold text-gray-700">Modifica Membro Staff</h4>
+    <form id="editStaffForm" class="space-y-4">
+      <input type="hidden" id="editStaffId" />
+      <div>
+        <label for="editStaffNome" class="block text-sm font-medium text-gray-700">Nome</label>
+        <input id="editStaffNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="editStaffCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+        <input id="editStaffCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="editStaffEmail" class="block text-sm font-medium text-gray-700">Email</label>
+        <input id="editStaffEmail" type="email" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="window.UI.closeModal('editStaffModal')" class="btn-secondary">Annulla</button>
+        <button class="btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale Conferma Eliminazione Staff -->
+<div id="confirmDeleteStaffModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto text-center">
+    <h4 class="text-xl font-semibold text-gray-700">Conferma Eliminazione Staff</h4>
+    <p class="text-gray-600 mb-4">Eliminare <span id="staffNameToDelete" class="font-semibold text-red-600"></span>?</p>
+    <div class="flex gap-2 justify-center">
+      <button onclick="window.UI.closeModal('confirmDeleteStaffModal')" class="btn-secondary">Annulla</button>
+      <button id="confirmDeleteStaffButton" class="btn-danger">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Modifica Esploratore -->
+<div id="editScoutModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto">
+    <h4 class="text-xl font-semibold text-gray-700">Modifica Esploratore</h4>
+    <form id="editScoutForm" class="space-y-4">
+      <input type="hidden" id="editScoutId" />
+      <div>
+        <label for="editScoutNome" class="block text-sm font-medium text-gray-700">Nome</label>
+        <input id="editScoutNome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="editScoutCognome" class="block text-sm font-medium text-gray-700">Cognome</label>
+        <input id="editScoutCognome" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="window.UI.closeModal('editScoutModal')" class="btn-secondary">Annulla</button>
+        <button class="btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale Conferma Eliminazione Esploratore -->
+<div id="confirmDeleteScoutModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto text-center">
+    <h4 class="text-xl font-semibold text-gray-700">Conferma Eliminazione Esploratore</h4>
+    <p class="text-gray-600 mb-4">Eliminare <span id="scoutNameToDelete" class="font-semibold text-red-600"></span>? Verranno rimosse anche le presenze associate.</p>
+    <div class="flex gap-2 justify-center">
+      <button onclick="window.UI.closeModal('confirmDeleteScoutModal')" class="btn-secondary">Annulla</button>
+      <button id="confirmDeleteScoutButton" class="btn-danger">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Modifica Attività -->
+<div id="editActivityModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto">
+    <h4 class="text-xl font-semibold text-gray-700">Modifica Attività</h4>
+    <form id="editActivityForm" class="space-y-4">
+      <input type="hidden" id="editActivityId" />
+      <div>
+        <label for="editActivityTipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+        <select id="editActivityTipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200">
+          <option value="Riunione">Riunione</option>
+          <option value="Attività lunga">Attività lunga</option>
+          <option value="Uscita">Uscita</option>
+          <option value="Campo">Campo</option>
+        </select>
+      </div>
+      <div>
+        <label for="editActivityData" class="block text-sm font-medium text-gray-700">Data</label>
+        <input id="editActivityData" type="date" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="editActivityDescrizione" class="block text-sm font-medium text-gray-700">Descrizione</label>
+        <input id="editActivityDescrizione" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="editActivityCosto" class="block text-sm font-medium text-gray-700">Costo (€)</label>
+        <input id="editActivityCosto" type="number" min="0" step="0.01" placeholder="0" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="window.UI.closeModal('editActivityModal')" class="btn-secondary">Annulla</button>
+        <button class="btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale Conferma Eliminazione Attività -->
+<div id="confirmDeleteActivityModal" class="modal">
+  <div class="modal-content max-w-sm mx-auto text-center">
+    <h4 class="text-xl font-semibold text-gray-700">Conferma Eliminazione Attività</h4>
+    <p class="text-gray-600 mb-4">Eliminare <span id="activityInfoToDelete" class="font-semibold text-red-600"></span>?</p>
+    <div class="flex gap-2 justify-center">
+      <button onclick="window.UI.closeModal('confirmDeleteActivityModal')" class="btn-secondary">Annulla</button>
+      <button id="confirmDeleteActivityButton" class="btn-danger">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Login -->
+<div id="loginModal" class="modal show">
+  <div class="modal-content max-w-sm mx-auto">
+    <h4 class="text-xl font-semibold text-gray-700">Accedi all'App</h4>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+        <input id="loginEmail" type="email" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <div>
+        <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+        <input id="loginPassword" type="password" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-200" />
+      </div>
+      <button type="submit" class="btn-primary w-full">Accedi</button>
+      <p id="loginError" class="text-red-500 text-sm text-center"></p>
+    </form>
+  </div>
+</div>

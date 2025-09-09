@@ -1,0 +1,37 @@
+<!-- Header condiviso -->
+<header class="bg-green-700 text-white p-6 rounded-t-xl flex justify-between items-center">
+    <div class="flex flex-col">
+      <h1 class="text-3xl font-bold">Reparto Maori</h1>
+      <p class="text-green-200 mt-1">Presenze</p>
+    </div>
+    <div id="staff-info" class="text-right flex flex-col">
+      <span class="text-green-200 text-sm">Sei:</span>
+      <span id="selectedStaffName" class="font-semibold text-lg">Nessuno</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="loggedInUserEmail" class="text-white text-lg"></span>
+      <nav id="hamburgerMenu" class="md:hidden">
+        <button class="hamburger-icon text-white p-3">&#9776;</button>
+        <div class="nav-links space-y-2">
+          <a href="presenze.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Presenze</a>
+          <a href="dashboard.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Dashboard</a>
+          <a href="calendario.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Calendario</a>
+          <a href="esploratori.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Esploratori</a>
+          <a href="staff.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Staff</a>
+          <a href="audit-logs.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-800">Log Audit</a>
+          <hr class="border-white/20 my-2">
+          <button type="button" id="logoutButton" class="tab-btn p-2 rounded-lg text-white hover:bg-red-600" style="display:none;">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- Navigazione desktop -->
+  <nav id="desktopNav" class="bg-green-600 p-2 hidden md:flex justify-center space-x-4">
+    <a href="presenze.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Presenze</a>
+    <a href="dashboard.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Dashboard</a>
+    <a href="calendario.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Calendario</a>
+    <a href="esploratori.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Esploratori</a>
+    <a href="staff.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Staff</a>
+    <a href="audit-logs.html" class="tab-btn p-2 rounded-lg text-white hover:bg-green-700">Log Audit</a>
+  </nav>

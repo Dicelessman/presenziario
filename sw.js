@@ -1,4 +1,4 @@
-const CACHE_NAME = "presenziario-cache-v1";
+const CACHE_NAME = "presenziario-cache-v2"; // Cambia da v1 a v2
 const URLS_TO_CACHE = [
   "/",
   "/index.html",

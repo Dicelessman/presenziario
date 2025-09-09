@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log Audit - Scout Maori</title>
+    <meta name="description" content="Log di audit Reparto Scout Maori" />
+    <meta name="theme-color" content="#16a34a" />
+    
+    <!-- Favicon e icone -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="manifest.json" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+  <div id="app" class="max-w-4xl mx-auto w-full bg-white shadow-lg rounded-xl overflow-hidden my-4">
+    
+    <!-- Header condiviso -->
+    <div id="shared-header"></div>
+    
+    <!-- Main -->
+    <main class="p-6">
+      <!-- Modali condivisi -->
+      <div id="shared-modals"></div>
+      
+      <!-- Contenuto specifico Audit Logs -->
+      <section id="auditLogsTab" class="tab-content active">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Log di Audit</h2>
+        <div id="auditLogsContent" class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <div class="text-center text-gray-500">
+            <p>Caricamento log di audit...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="shared.js"></script>
+  <script type="module" src="audit-logs.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrato:", reg.scope))
+        .catch(err => console.error("SW registration failed:", err));
+    }
+  </script>
+</body>
+</html>
