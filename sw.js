@@ -2,8 +2,22 @@ const CACHE_NAME = "presenziario-cache-v2"; // Cambia da v1 a v2
 const URLS_TO_CACHE = [
   "/",
   "/index.html",
+  "/presenze.html",
+  "/dashboard.html",
+  "/calendario.html",
+  "/esploratori.html",
+  "/staff.html",
+  "/audit-logs.html",
+  "/shared.html",
+  "/modals.html",
   "/style.css",
-  "/app.js",
+  "/shared.js",
+  "/presenze.js",
+  "/dashboard.js",
+  "/calendario.js",
+  "/esploratori.js",
+  "/staff.js",
+  "/audit-logs.js",
   "/manifest.json"
 ];
 
