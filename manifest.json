@@ -6,6 +6,13 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#16a34a",
+  "scope": "/",
+  "shortcuts": [
+    { "name": "Presenze", "url": "/presenze.html" },
+    { "name": "Calendario", "url": "/calendario.html" },
+    { "name": "Esploratori", "url": "/esploratori.html" },
+    { "name": "Staff", "url": "/staff.html" }
+  ],
   "icons": [
     {
       "src": "favicon.ico",

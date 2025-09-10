@@ -1,4 +1,5 @@
-const CACHE_NAME = "presenziario-cache-v2"; // Cambia da v1 a v2
+const CACHE_NAME = "presenziario-cache-v3"; // bump cache
+const RUNTIME_CACHE = "presenziario-runtime-v1";
 const URLS_TO_CACHE = [
   "/",
   "/index.html",
@@ -49,9 +50,27 @@ self.addEventListener("activate", (event) => {
 
 // Fetch
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((resp) => {
-      return resp || fetch(event.request);
-    })
-  );
+  const { request } = event;
+  // Solo GET e stessa origine
+  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) {
+    return;
+  }
+
+  // Stale-While-Revalidate per asset statici e HTML
+  event.respondWith((async () => {
+    const cache = await caches.open(RUNTIME_CACHE);
+    const cached = await caches.match(request);
+    const fetchPromise = fetch(request)
+      .then(async (networkResponse) => {
+        // Clona e metti in cache se ok
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          try { await cache.put(request, networkResponse.clone()); } catch (e) {}
+        }
+        return networkResponse;
+      })
+      .catch(() => cached);
+
+    // Rispondi subito con cache se presente, altrimenti vai in rete
+    return cached || fetchPromise;
+  })());
 });

@@ -308,6 +308,19 @@ const UI = {
       // Carica header e modali condivisi
       await this.loadSharedComponents();
 
+      // Prefetch pagine usate spesso
+      try {
+        const links = [
+          'presenze.html','dashboard.html','calendario.html','esploratori.html','staff.html','audit-logs.html'
+        ];
+        links.forEach(href => {
+          const l = document.createElement('link');
+          l.rel = 'prefetch';
+          l.href = href;
+          document.head.appendChild(l);
+        });
+      } catch {}
+
       // Nascondi la modale login fino a quando lo stato auth non è noto
       const loginModal = this.qs('#loginModal');
       if (loginModal) loginModal.classList.remove('show');
@@ -342,6 +355,9 @@ const UI = {
           this.showModal('loginModal');
         }
       });
+
+      // Install prompt A2HS discreto
+      this.setupInstallPrompt();
       
     } catch (error) {
       console.error('UI.init error:', error);
@@ -415,6 +431,41 @@ const UI = {
     
     // Modali event listeners
     this.setupModalEventListeners();
+  },
+
+  setupInstallPrompt() {
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Mostra un piccolo banner non invasivo nell'header
+      const header = this.qs('#shared-header');
+      if (!header || header._installShown) return;
+      header._installShown = true;
+      const bar = document.createElement('div');
+      bar.style.background = '#e8f5e9';
+      bar.style.borderTop = '1px solid #c8e6c9';
+      bar.style.padding = '8px 12px';
+      bar.style.display = 'flex';
+      bar.style.justifyContent = 'space-between';
+      bar.style.alignItems = 'center';
+      bar.innerHTML = `
+        <span class="text-sm text-green-800">Aggiungi l'app alla schermata Home per un accesso rapido.</span>
+        <div class="flex gap-2">
+          <button id="installAppBtn" class="btn-primary py-1 px-3 text-sm">Aggiungi</button>
+          <button id="dismissInstallBtn" class="btn-secondary py-1 px-3 text-sm">Chiudi</button>
+        </div>
+      `;
+      header.appendChild(bar);
+      this.qs('#dismissInstallBtn')?.addEventListener('click', () => bar.remove());
+      this.qs('#installAppBtn')?.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch {}
+        deferredPrompt = null;
+        bar.remove();
+      });
+    });
   },
   
   setupModalEventListeners() {
