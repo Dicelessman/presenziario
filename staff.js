@@ -40,31 +40,36 @@ UI.renderStaff = function() {
     a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome)
   );
 
-  list.innerHTML = sortedStaff.map(member => `
-    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
-      <div class="flex-1">
-        <h4 class="font-medium text-gray-900">${member.nome} ${member.cognome}</h4>
-        <p class="text-sm text-gray-600">${member.email || ''}</p>
-        <p class="text-sm text-gray-600">ID: ${member.id}</p>
+  this.renderInBatches({
+    container: list,
+    items: sortedStaff,
+    batchSize: 200,
+    renderItem: (member) => `
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
+        <div class="flex-1">
+          <h4 class="font-medium text-gray-900">${member.nome} ${member.cognome}</h4>
+          <p class="text-sm text-gray-600">${member.email || ''}</p>
+          <p class="text-sm text-gray-600">ID: ${member.id}</p>
+        </div>
+        <div class="flex gap-2">
+          <button 
+            onclick="UI.openEditStaffModal('${member.id}')" 
+            class="p-2 text-gray-500 hover:text-green-600 rounded-full"
+            ${this.currentUser ? '' : 'disabled'}
+          >
+            ✏️
+          </button>
+          <button 
+            onclick="UI.confirmDeleteStaff('${member.id}')" 
+            class="p-2 text-gray-500 hover:text-red-600 rounded-full"
+            ${this.currentUser ? '' : 'disabled'}
+          >
+            🗑️
+          </button>
+        </div>
       </div>
-      <div class="flex gap-2">
-        <button 
-          onclick="UI.openEditStaffModal('${member.id}')" 
-          class="p-2 text-gray-500 hover:text-green-600 rounded-full"
-          ${this.currentUser ? '' : 'disabled'}
-        >
-          ✏️
-        </button>
-        <button 
-          onclick="UI.confirmDeleteStaff('${member.id}')" 
-          class="p-2 text-gray-500 hover:text-red-600 rounded-full"
-          ${this.currentUser ? '' : 'disabled'}
-        >
-          🗑️
-        </button>
-      </div>
-    </div>
-  `).join('');
+    `
+  });
 };
 
 UI.openEditStaffModal = function(id) {

@@ -290,6 +290,7 @@ const DATA = {
 
 // UI condiviso
 const UI = {
+  appVersion: 'v3',
   selectedStaffId: null,
   staffToDeleteId: null,
   scoutToDeleteId: null,
@@ -605,6 +606,31 @@ const UI = {
   },
   
   // Funzioni di utilità
+  debounce(fn, wait = 250) {
+    let timeoutId;
+    return function(...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn.apply(this, args), wait);
+    };
+  },
+
+  async renderInBatches({ container, items, renderItem, batchSize = 100 }) {
+    if (!container) return;
+    if (!Array.isArray(items) || items.length === 0) { container.innerHTML = ''; return; }
+    if (items.length <= batchSize) {
+      container.innerHTML = items.map(renderItem).join('');
+      return;
+    }
+    container.innerHTML = '';
+    for (let i = 0; i < items.length; i += batchSize) {
+      const slice = items.slice(i, i + batchSize);
+      container.insertAdjacentHTML('beforeend', slice.map(renderItem).join(''));
+      // Rilascia il thread UI
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(requestAnimationFrame);
+    }
+  },
+
   toJsDate(firestoreDate) {
     if (firestoreDate && firestoreDate.toDate) {
       return firestoreDate.toDate();
