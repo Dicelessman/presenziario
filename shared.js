@@ -109,7 +109,7 @@ class LocalAdapter {
     console.log('LocalAdapter: deleteScout', { id, currentUser: currentUser?.email });
   }
   
-  // Presences
+  // Presences same same or not
   async updatePresence({ field, value, scoutId, activityId }, currentUser) {
     const p = this.state.presences.find(x => x.esploratoreId === scoutId && x.attivitaId === activityId);
     if (!p) return;
