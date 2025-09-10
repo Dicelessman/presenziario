@@ -28,9 +28,9 @@ class LocalAdapter {
         { id: 'a4', tipo: 'Campo', data: new Date('2024-07-15'), descrizione: 'Campo Estivo', costo: '150' }
       ],
       presences: saved.presences || [
-        { esploratoreId: 's1', attivitaId: 'a1', stato: 'P', pagato: true, tipoPagamento: 'contanti' },
-        { esploratoreId: 's2', attivitaId: 'a1', stato: 'A', pagato: false, tipoPagamento: null },
-        { esploratoreId: 's3', attivitaId: 'a1', stato: 'P', pagato: true, tipoPagamento: 'bonifico' }
+        { esploratoreId: 's1', attivitaId: 'a1', stato: 'Presente', pagato: true, tipoPagamento: 'Contanti' },
+        { esploratoreId: 's2', attivitaId: 'a1', stato: 'Assente', pagato: false, tipoPagamento: null },
+        { esploratoreId: 's3', attivitaId: 'a1', stato: 'Presente', pagato: true, tipoPagamento: 'Bonifico' }
       ]
     };
   }
@@ -282,21 +282,9 @@ const DATA = {
   async addStaff(p, currentUser) { return await this.adapter.addStaff(p, currentUser); },
   async updateStaff(p, currentUser) { return await this.adapter.updateStaff(p, currentUser); },
   async deleteStaff(id, currentUser) { return await this.adapter.deleteStaff(id, currentUser); },
-  async addScout(p, currentUser) {
-    const result = await this.adapter.addScout(p, currentUser);
-    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
-    return result;
-  },
-  async updateScout(id, p, currentUser) {
-    const result = await this.adapter.updateScout(p, currentUser);
-    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
-    return result;
-  },
-  async deleteScout(id, currentUser) {
-    const result = await this.adapter.deleteScout(id, currentUser);
-    this.state.scouts.sort((a, b) => a.nome.localeCompare(b.nome) || a.cognome.localeCompare(b.cognome));
-    return result;
-  },
+  async addScout(p, currentUser) { return await this.adapter.addScout(p, currentUser); },
+  async updateScout(id, p, currentUser) { return await this.adapter.updateScout({ id, ...p }, currentUser); },
+  async deleteScout(id, currentUser) { return await this.adapter.deleteScout(id, currentUser); },
   async updatePresence(p, currentUser) { return await this.adapter.updatePresence(p, currentUser); },
 };
 
@@ -399,7 +387,8 @@ const UI = {
   
   setupModalEventListeners() {
     // Edit Staff Form
-    this.qs('#editStaffForm').addEventListener('submit', async (e) => {
+    const editStaffForm = this.qs('#editStaffForm');
+    if (editStaffForm) editStaffForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!this.currentUser) { alert('Devi essere loggato per modificare staff.'); return; }
       const id = this.qs('#editStaffId').value;
@@ -414,7 +403,8 @@ const UI = {
     });
     
     // Confirm Delete Staff
-    this.qs('#confirmDeleteStaffButton').addEventListener('click', async () => {
+    const confirmDeleteStaffButton = this.qs('#confirmDeleteStaffButton');
+    if (confirmDeleteStaffButton) confirmDeleteStaffButton.addEventListener('click', async () => {
       if (!this.currentUser) { alert('Devi essere loggato per eliminare staff.'); return; }
       if (!this.staffToDeleteId) return;
       await DATA.deleteStaff(this.staffToDeleteId, this.currentUser);
@@ -426,7 +416,8 @@ const UI = {
     });
     
     // Edit Scout Form
-    this.qs('#editScoutForm').addEventListener('submit', async (e) => {
+    const editScoutForm = this.qs('#editScoutForm');
+    if (editScoutForm) editScoutForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!this.currentUser) { alert('Devi essere loggato per modificare esploratori.'); return; }
       const id = this.qs('#editScoutId').value;
@@ -440,7 +431,8 @@ const UI = {
     });
     
     // Confirm Delete Scout
-    this.qs('#confirmDeleteScoutButton').addEventListener('click', async () => {
+    const confirmDeleteScoutButton = this.qs('#confirmDeleteScoutButton');
+    if (confirmDeleteScoutButton) confirmDeleteScoutButton.addEventListener('click', async () => {
       if (!this.currentUser) { alert('Devi essere loggato per eliminare esploratori.'); return; }
       if (!this.scoutToDeleteId) return;
       await DATA.deleteScout(this.scoutToDeleteId, this.currentUser);
@@ -452,7 +444,8 @@ const UI = {
     });
     
     // Edit Activity Form
-    this.qs('#editActivityForm').addEventListener('submit', async (e) => {
+    const editActivityForm = this.qs('#editActivityForm');
+    if (editActivityForm) editActivityForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!this.currentUser) { alert('Devi essere loggato per modificare attività.'); return; }
       const id = this.qs('#editActivityId').value;
@@ -468,7 +461,8 @@ const UI = {
     });
     
     // Confirm Delete Activity
-    this.qs('#confirmDeleteActivityButton').addEventListener('click', async () => {
+    const confirmDeleteActivityButton = this.qs('#confirmDeleteActivityButton');
+    if (confirmDeleteActivityButton) confirmDeleteActivityButton.addEventListener('click', async () => {
       if (!this.currentUser) { alert('Devi essere loggato per eliminare attività.'); return; }
       if (!this.activityToDeleteId) return;
       await DATA.deleteActivity(this.activityToDeleteId, this.currentUser);
