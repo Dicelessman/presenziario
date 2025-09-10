@@ -583,7 +583,40 @@ const UI = {
     } else {
       return [];
     }
-  }
+  },
+
+  // Aggiornamenti presenze con refresh stato e dashboard
+  async updatePresenceCell({ field, value, scoutId, activityId }) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare le presenze.'); return; }
+    if (!this.selectedStaffId) { alert('Seleziona uno Staff per abilitare le modifiche.'); return; }
+    await DATA.updatePresence({ field, value, scoutId, activityId }, this.currentUser);
+    this.state = await DATA.loadAll();
+    this.rebuildPresenceIndex();
+    // Aggiorna UI corrente
+    this.renderCurrentPage();
+    // Se siamo in dashboard, aggiorna i grafici se esiste la funzione
+    if (typeof this.renderDashboardCharts === 'function') {
+      try { this.renderDashboardCharts(); } catch {}
+    }
+  },
+
+  async updatePaymentCombined({ value, scoutId, activityId }) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare i pagamenti.'); return; }
+    if (!this.selectedStaffId) { alert('Seleziona uno Staff per abilitare le modifiche.'); return; }
+    if (!value) {
+      await DATA.updatePresence({ field: 'pagato', value: false, scoutId, activityId }, this.currentUser);
+      await DATA.updatePresence({ field: 'tipoPagamento', value: null, scoutId, activityId }, this.currentUser);
+    } else {
+      await DATA.updatePresence({ field: 'pagato', value: true, scoutId, activityId }, this.currentUser);
+      await DATA.updatePresence({ field: 'tipoPagamento', value, scoutId, activityId }, this.currentUser);
+    }
+    this.state = await DATA.loadAll();
+    this.rebuildPresenceIndex();
+    this.renderCurrentPage();
+    if (typeof this.renderDashboardCharts === 'function') {
+      try { this.renderDashboardCharts(); } catch {}
+    }
+  },
 };
 
 // Inizializza quando il DOM è pronto
