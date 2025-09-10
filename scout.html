@@ -164,16 +164,12 @@
         </section>
 
         <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
-          <h3 class="text-xl font-semibold text-gray-700 mb-4">Specialità</h3>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div><label class="block text-sm">Specialità</label><input id="sp_nome" class="input" /></div>
-            <div class="md:col-span-2 grid grid-cols-2 gap-2">
-              <label><input type="checkbox" id="sp_p1_chk" /> Prova 1</label><input id="sp_p1_dt" type="date" class="input" />
-              <label><input type="checkbox" id="sp_p2_chk" /> Prova 2</label><input id="sp_p2_dt" type="date" class="input" />
-              <label><input type="checkbox" id="sp_p3_chk" /> Prova 3</label><input id="sp_p3_dt" type="date" class="input" />
-              <label><input type="checkbox" id="sp_cr_chk" /> Prova CR</label><input id="sp_cr_dt" type="date" class="input" />
-            </div>
-            <div class="md:col-span-2"><label class="block text-sm">Note</label><textarea id="sp_note" class="textarea"></textarea></div>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-700">Specialità</h3>
+            <button type="button" id="addSpecialitaBtn" class="btn-primary">+ Aggiungi Specialità</button>
+          </div>
+          <div id="specialitaContainer" class="space-y-4">
+            <!-- Le specialità verranno aggiunte dinamicamente qui -->
           </div>
         </section>
 

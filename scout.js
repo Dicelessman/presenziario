@@ -95,12 +95,8 @@ UI.renderScoutPage = async function() {
   setCheckDate('pv_im_34', s.pv_im_34);
   setVal('#pv_note', s.pv_note);
 
-  setVal('#sp_nome', s.sp_nome);
-  setCheckDate('sp_p1', s.sp_p1);
-  setCheckDate('sp_p2', s.sp_p2);
-  setCheckDate('sp_p3', s.sp_p3);
-  setCheckDate('sp_cr', s.sp_cr);
-  setVal('#sp_note', s.sp_note);
+  // Carica specialità multiple
+  this.loadSpecialita(s.specialita || []);
 
   setPair('#ev_ce1', s.ev_ce1);
   setPair('#ev_ce2', s.ev_ce2);
@@ -136,6 +132,81 @@ UI.renderScoutPage = async function() {
       alert('Salvato');
     });
     this.qs('#btnAnnulla')?.addEventListener('click', () => history.back());
+    
+    // Gestione specialità multiple
+    this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
+  }
+
+  loadSpecialita(specialitaArray) {
+    const container = this.qs('#specialitaContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    specialitaArray.forEach((sp, index) => this.addSpecialita(sp, index));
+  }
+
+  addSpecialita(data = null, index = null) {
+    const container = this.qs('#specialitaContainer');
+    if (!container) return;
+    
+    const realIndex = index !== null ? index : container.children.length;
+    const spId = `sp_${realIndex}`;
+    
+    const div = document.createElement('div');
+    div.className = 'bg-white p-4 rounded-lg border border-gray-200';
+    div.innerHTML = `
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="font-medium text-gray-700">Specialità ${realIndex + 1}</h4>
+        <button type="button" class="removeSpecialitaBtn text-red-600 hover:text-red-800" data-index="${realIndex}">🗑️</button>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><label class="block text-sm">Nome Specialità</label><input id="${spId}_nome" class="input" value="${data?.nome || ''}" /></div>
+        <div class="md:col-span-2 grid grid-cols-2 gap-2">
+          <label><input type="checkbox" id="${spId}_p1_chk" ${data?.p1?.done ? 'checked' : ''} /> Prova 1</label><input id="${spId}_p1_dt" type="date" class="input" value="${data?.p1?.data ? toYyyyMmDd(data.p1.data) : ''}" />
+          <label><input type="checkbox" id="${spId}_p2_chk" ${data?.p2?.done ? 'checked' : ''} /> Prova 2</label><input id="${spId}_p2_dt" type="date" class="input" value="${data?.p2?.data ? toYyyyMmDd(data.p2.data) : ''}" />
+          <label><input type="checkbox" id="${spId}_p3_chk" ${data?.p3?.done ? 'checked' : ''} /> Prova 3</label><input id="${spId}_p3_dt" type="date" class="input" value="${data?.p3?.data ? toYyyyMmDd(data.p3.data) : ''}" />
+          <label><input type="checkbox" id="${spId}_cr_chk" ${data?.cr?.done ? 'checked' : ''} /> Prova CR</label><input id="${spId}_cr_dt" type="date" class="input" value="${data?.cr?.data ? toYyyyMmDd(data.cr.data) : ''}" />
+        </div>
+        <div class="md:col-span-2"><label class="block text-sm">Note</label><textarea id="${spId}_note" class="textarea">${data?.note || ''}</textarea></div>
+      </div>
+    `;
+    container.appendChild(div);
+    
+    // Event listener per rimuovere
+    div.querySelector('.removeSpecialitaBtn')?.addEventListener('click', () => {
+      div.remove();
+      this.renumberSpecialita();
+    });
+  }
+
+  renumberSpecialita() {
+    const container = this.qs('#specialitaContainer');
+    if (!container) return;
+    Array.from(container.children).forEach((div, index) => {
+      div.querySelector('h4').textContent = `Specialità ${index + 1}`;
+      const btn = div.querySelector('.removeSpecialitaBtn');
+      if (btn) btn.dataset.index = index;
+    });
+  }
+
+  collectSpecialita() {
+    const container = this.qs('#specialitaContainer');
+    if (!container) return [];
+    
+    return Array.from(container.children).map(div => {
+      const spId = div.querySelector('input[id$="_nome"]')?.id.replace('_nome', '') || '';
+      const get = (suffix) => this.qs(`#${spId}${suffix}`)?.value?.trim() || '';
+      const getChk = (suffix) => !!this.qs(`#${spId}${suffix}`)?.checked;
+      const cd = (suffix) => ({ done: getChk(suffix), data: get(suffix) || null });
+      
+      return {
+        nome: get('_nome'),
+        p1: cd('_p1'),
+        p2: cd('_p2'),
+        p3: cd('_p3'),
+        cr: cd('_cr'),
+        note: get('_note')
+      };
+    });
   }
 
   function setCheckDate(prefix, val) {
@@ -202,9 +273,7 @@ UI.renderScoutPage = async function() {
       pv_re_31: cd('pv_re_31'), pv_re_32: cd('pv_re_32'), pv_re_33: cd('pv_re_33'), pv_re_34: cd('pv_re_34'),
       pv_im_31: cd('pv_im_31'), pv_im_32: cd('pv_im_32'), pv_im_33: cd('pv_im_33'), pv_im_34: cd('pv_im_34'),
       pv_note: get('#pv_note'),
-      sp_nome: get('#sp_nome'),
-      sp_p1: cd('sp_p1'), sp_p2: cd('sp_p2'), sp_p3: cd('sp_p3'), sp_cr: cd('sp_cr'),
-      sp_note: get('#sp_note'),
+      specialita: this.collectSpecialita(),
       ev_ce1: pair('#ev_ce1'), ev_ce2: pair('#ev_ce2'), ev_ce3: pair('#ev_ce3'), ev_ce4: pair('#ev_ce4'),
       ev_ccp: pair('#ev_ccp'), ev_tc1: pair('#ev_tc1'), ev_tc2: pair('#ev_tc2'), ev_tc3: pair('#ev_tc3'), ev_tc4: pair('#ev_tc4'),
       ev_jam: pair('#ev_jam'), ev_note: get('#ev_note'),
