@@ -135,15 +135,14 @@ UI.renderScoutPage = async function() {
     
     // Gestione specialità multiple
     this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
-  }
-}
+  },
 
   loadSpecialita(specialitaArray) {
     const container = this.qs('#specialitaContainer');
     if (!container) return;
     container.innerHTML = '';
     specialitaArray.forEach((sp, index) => this.addSpecialita(sp, index));
-  }
+  },
 
   addSpecialita(data = null, index = null) {
     const container = this.qs('#specialitaContainer');
@@ -177,7 +176,7 @@ UI.renderScoutPage = async function() {
       div.remove();
       this.renumberSpecialita();
     });
-  }
+  },
 
   renumberSpecialita() {
     const container = this.qs('#specialitaContainer');
@@ -187,7 +186,7 @@ UI.renderScoutPage = async function() {
       const btn = div.querySelector('.removeSpecialitaBtn');
       if (btn) btn.dataset.index = index;
     });
-  }
+  },
 
   collectSpecialita() {
     const container = this.qs('#specialitaContainer');
@@ -209,6 +208,7 @@ UI.renderScoutPage = async function() {
       };
     });
   }
+};
 
   function setCheckDate(prefix, val) {
     const data = val?.data ? toYyyyMmDd(val.data) : toYyyyMmDd(val);
