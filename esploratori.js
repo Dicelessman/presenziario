@@ -8,7 +8,10 @@ UI.renderCurrentPage = function() {
 
 UI.setupScoutsEventListeners = function() {
   // Event listener per form aggiunta esploratore
-  this.qs('#addScoutForm').addEventListener('submit', async (e) => {
+  const form = this.qs('#addScoutForm');
+  if (!form || form._bound) return;
+  form._bound = true;
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!this.currentUser) { 
       alert('Devi essere loggato per aggiungere esploratori.'); 
@@ -24,7 +27,7 @@ UI.setupScoutsEventListeners = function() {
     this.renderScouts();
     
     // Reset form
-    this.qs('#addScoutForm').reset();
+    form.reset();
   });
 };
 
