@@ -389,16 +389,16 @@ const UI = {
     if (loginForm && !loginForm._bound) {
       loginForm._bound = true;
       loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+      e.preventDefault();
         const email = this.qs('#loginEmail').value.trim();
-        const password = this.qs('#loginPassword').value;
-        const loginError = this.qs('#loginError');
-        loginError.textContent = '';
+      const password = this.qs('#loginPassword').value;
+      const loginError = this.qs('#loginError');
+      loginError.textContent = '';
         console.log('Tentativo login per:', email);
-        try {
-          await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
+      try {
+        await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
           console.log('Login riuscito per:', email);
-        } catch (error) {
+      } catch (error) {
           console.error('Login error:', error.code, error.message);
           let msg = 'Accesso non riuscito.';
           switch (error.code) {
