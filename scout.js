@@ -136,6 +136,7 @@ UI.renderScoutPage = async function() {
     // Gestione specialità multiple
     this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
   }
+}
 
   loadSpecialita(specialitaArray) {
     const container = this.qs('#specialitaContainer');
