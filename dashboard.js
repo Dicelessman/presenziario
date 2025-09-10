@@ -31,13 +31,15 @@ UI.renderDashboardCharts = function() {
     return activities.length ? (presentCount / activities.length) * 100 : 0;
   });
 
-  // Dati per grafico Presenze per Attività (conteggio presenti)
-  const actLabels = activities.map(a => {
-    const d = a.data && a.data.toDate ? a.data.toDate() : new Date(a.data);
+  // Dati per grafico Presenze per Attività (conteggio presenti) ordinati per data
+  const toDate = (v) => (v && v.toDate) ? v.toDate() : new Date(v);
+  const sortedActivities = [...activities].sort((a, b) => toDate(a.data) - toDate(b.data));
+  const actLabels = sortedActivities.map(a => {
+    const d = toDate(a.data);
     const ds = isNaN(d) ? '' : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
     return `${a.tipo}: ${a.descrizione || ''}\n${ds}`;
   });
-  const actData = activities.map(a => dedup.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
+  const actData = sortedActivities.map(a => dedup.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
 
   // Datalabels
   const ChartDataLabels = window.ChartDataLabels;
