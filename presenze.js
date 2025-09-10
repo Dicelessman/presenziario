@@ -112,8 +112,7 @@ UI.renderPresenceTable = function() {
   if (!body || !thDates || !thNames) return;
 
   const container = this.qs('#presenceTableContainer');
-  const prevScroll = container ? container.scrollLeft : 0;
-  const savedScroll = sessionStorage.getItem('presenceTableScrollLeft');
+  // Nessun auto-scroll iniziale: lasciamo solo scroll manuale
 
   body.innerHTML = '';
   thDates.innerHTML = '<th id="thScoutName" rowspan="2" class="cursor-pointer select-none sticky left-0 !bg-green-800 !text-white !p-4 !border-r !border-white/50 text-left" title="Ordina per Esploratore">Esploratore</th>';
@@ -218,31 +217,7 @@ UI.renderPresenceTable = function() {
     body.insertAdjacentHTML('beforeend', row);
   });
 
-  // Auto-scroll alla prossima attività (o mantieni scroll salvato)
-  if (container) {
-    if (nextActivityIndex >= 0) {
-      // Seleziona picker coerente
-      const picker = this.qs('#mobileActivityPicker');
-      if (picker) picker.selectedIndex = nextActivityIndex;
-      // Scroll
-      UI.scrollToActivityIndex(nextActivityIndex);
-    } else {
-      const targetScroll = (savedScroll ? parseInt(savedScroll, 10) : NaN);
-      if (!isNaN(targetScroll)) {
-        container.scrollLeft = targetScroll;
-      } else {
-        // Nessuna prossima attività e nessuno scroll salvato: mostra la prima data
-        UI.scrollToActivityIndex(0);
-      }
-    }
-    // Salva scroll su evento
-    if (!container._scrollSaveBound) {
-      container._scrollSaveBound = true;
-      container.addEventListener('scroll', () => {
-        sessionStorage.setItem('presenceTableScrollLeft', String(container.scrollLeft));
-      }, { passive: true });
-    }
-  }
+  // Nessuno scroll automatico qui: l’utente usa picker/prev/next o il toggle
 };
 
 // Inizializza la pagina presenze
