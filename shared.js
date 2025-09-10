@@ -307,10 +307,17 @@ const UI = {
       
       // Carica header e modali condivisi
       await this.loadSharedComponents();
+
+      // Nascondi la modale login fino a quando lo stato auth non è noto
+      const loginModal = this.qs('#loginModal');
+      if (loginModal) loginModal.classList.remove('show');
+
+      // Wiring eventi condivisi (serve anche per il login form)
+      this.setupEventListeners();
       
       // Inizializza Firebase Auth
-      // Imposta persistenza locale della sessione
-      try { await setPersistence(getAuth(), browserLocalPersistence); } catch(e) { console.warn('Auth persistence set failed:', e); }
+      // Imposta persistenza locale della sessione sull'istanza corretta
+      try { await setPersistence(DATA.adapter.auth, browserLocalPersistence); } catch(e) { console.warn('Auth persistence set failed:', e); }
 
       onAuthStateChanged(DATA.adapter.auth, async (user) => {
         this.currentUser = user;
@@ -320,7 +327,6 @@ const UI = {
           this.closeModal('loginModal');
           this.state = await DATA.loadAll();
           this.rebuildPresenceIndex();
-          this.setupEventListeners();
           this.renderCurrentPage();
         } else {
           this.qs('#loggedInUserEmail').textContent = '';
@@ -352,7 +358,8 @@ const UI = {
   
   setupEventListeners() {
     // Event listeners condivisi
-    this.qs('#logoutButton').addEventListener('click', async () => {
+    const logoutBtn = this.qs('#logoutButton');
+    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
       try {
         await signOut(DATA.adapter.auth);
       } catch (error) {
@@ -371,29 +378,32 @@ const UI = {
     
     // Login form
     const loginForm = this.qs('#loginForm');
-    if (loginForm) loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = this.qs('#loginEmail').value.trim();
-      const password = this.qs('#loginPassword').value;
-      const loginError = this.qs('#loginError');
-      loginError.textContent = '';
-      console.log('Tentativo login per:', email);
-      try {
-        await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
-        console.log('Login riuscito per:', email);
-      } catch (error) {
-        console.error('Login error:', error.code, error.message);
-        let msg = 'Accesso non riuscito.';
-        switch (error.code) {
-          case 'auth/invalid-email': msg = 'Email non valida.'; break;
-          case 'auth/user-disabled': msg = 'Utente disabilitato.'; break;
-          case 'auth/user-not-found': msg = 'Utente non trovato.'; break;
-          case 'auth/wrong-password': msg = 'Password errata.'; break;
-          case 'auth/too-many-requests': msg = 'Troppi tentativi, riprova più tardi.'; break;
+    if (loginForm && !loginForm._bound) {
+      loginForm._bound = true;
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = this.qs('#loginEmail').value.trim();
+        const password = this.qs('#loginPassword').value;
+        const loginError = this.qs('#loginError');
+        loginError.textContent = '';
+        console.log('Tentativo login per:', email);
+        try {
+          await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
+          console.log('Login riuscito per:', email);
+        } catch (error) {
+          console.error('Login error:', error.code, error.message);
+          let msg = 'Accesso non riuscito.';
+          switch (error.code) {
+            case 'auth/invalid-email': msg = 'Email non valida.'; break;
+            case 'auth/user-disabled': msg = 'Utente disabilitato.'; break;
+            case 'auth/user-not-found': msg = 'Utente non trovato.'; break;
+            case 'auth/wrong-password': msg = 'Password errata.'; break;
+            case 'auth/too-many-requests': msg = 'Troppi tentativi, riprova più tardi.'; break;
+          }
+          loginError.textContent = msg;
         }
-        loginError.textContent = msg;
-      }
-    });
+      });
+    }
     
     // Modali event listeners
     this.setupModalEventListeners();
