@@ -46,7 +46,7 @@ UI.renderScouts = function() {
     renderItem: (scout) => `
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
         <div class="flex-1">
-          <h4 class="font-medium text-gray-900">${scout.nome} ${scout.cognome}</h4>
+          <h4 class="font-medium text-gray-900"><a href="scout.html?id=${scout.id}" class="hover:underline">${scout.nome} ${scout.cognome}</a></h4>
           <p class="text-sm text-gray-600">ID: ${scout.id}</p>
         </div>
         <div class="flex gap-2">

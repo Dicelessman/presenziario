@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scheda Esploratore - Scout Maori</title>
+  <meta name="theme-color" content="#16a34a" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+  <div id="app" class="max-w-4xl mx-auto w-full bg-white shadow-lg rounded-xl overflow-hidden my-4">
+    <div id="shared-header"></div>
+    <main class="p-6 space-y-6">
+      <div id="shared-modals"></div>
+
+      <div class="flex items-center justify-between">
+        <h2 id="scoutTitle" class="text-2xl font-semibold text-gray-700">Scheda Esploratore</h2>
+        <a href="esploratori.html" class="btn-secondary">← Torna alla lista</a>
+      </div>
+
+      <form id="scoutForm" class="space-y-8">
+        <input type="hidden" id="scoutId" />
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Dati anagrafici</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Nome</label><input id="anag_nome" class="input" /></div>
+            <div><label class="block text-sm">Cognome</label><input id="anag_cognome" class="input" /></div>
+            <div><label class="block text-sm">Data di Nascita</label><input id="anag_dob" type="date" class="input" /></div>
+            <div><label class="block text-sm">Codice Fiscale</label><input id="anag_cf" class="input" /></div>
+            <div><label class="block text-sm">Indirizzo</label><input id="anag_indirizzo" class="input" /></div>
+            <div><label class="block text-sm">Città</label><input id="anag_citta" class="input" /></div>
+            <div><label class="block text-sm">Email</label><input id="anag_email" class="input" /></div>
+            <div><label class="block text-sm">Telefono</label><input id="anag_telefono" type="number" class="input" /></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Contatti</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div><label class="block text-sm">Genitore 1</label><input id="ct_g1_nome" class="input" /></div>
+            <div><label class="block text-sm">Telefono</label><input id="ct_g1_tel" type="number" class="input" /></div>
+            <div><label class="block text-sm">Email</label><input id="ct_g1_email" class="input" /></div>
+            <div><label class="block text-sm">Genitore 2</label><input id="ct_g2_nome" class="input" /></div>
+            <div><label class="block text-sm">Telefono</label><input id="ct_g2_tel" type="number" class="input" /></div>
+            <div><label class="block text-sm">Email</label><input id="ct_g2_email" class="input" /></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Informazioni Sanitarie</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Gruppo Sanguigno</label><input id="san_gruppo" class="input" /></div>
+            <div class="md:col-span-2"><label class="block text-sm">Intolleranze e Esigenze Alimentari</label><textarea id="san_intolleranze" class="textarea"></textarea></div>
+            <div class="md:col-span-2"><label class="block text-sm">Allergie</label><textarea id="san_allergie" class="textarea"></textarea></div>
+            <div class="md:col-span-2"><label class="block text-sm">Farmaci</label><textarea id="san_farmaci" class="textarea"></textarea></div>
+            <div class="md:col-span-2"><label class="block text-sm">Vaccinazioni</label><textarea id="san_vaccinazioni" class="textarea"></textarea></div>
+            <div class="md:col-span-2"><label class="block text-sm">Certificazioni</label><textarea id="san_cert" class="textarea"></textarea></div>
+            <div class="md:col-span-2"><label class="block text-sm">Altro</label><textarea id="san_altro" class="textarea"></textarea></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Progressione Verticale</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Promessa</label><input id="pv_promessa" type="date" class="input" /></div>
+            <div>
+              <label class="block text-sm">VCP/CP</label>
+              <div class="flex gap-4">
+                <label><input type="radio" name="pv_vcp_cp" value="VCP" /> VCP</label>
+                <label><input type="radio" name="pv_vcp_cp" value="CP" /> CP</label>
+              </div>
+            </div>
+            <div class="md:col-span-2 grid md:grid-cols-2 gap-4">
+              <div><label class="block text-sm">Giglio/Trifoglio (data)</label><input id="pv_giglio_data" type="date" class="input" /></div>
+              <div><label class="block text-sm">Note</label><input id="pv_giglio_note" class="input" /></div>
+            </div>
+          </div>
+
+          <div class="space-y-4 mt-4">
+            <h4 class="font-semibold">Traccia 1</h4>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="font-medium">IO</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_io_11_chk" /> IO-1.1</label><input id="pv_io_11_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_12_chk" /> IO-1.2</label><input id="pv_io_12_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_13_chk" /> IO-1.3</label><input id="pv_io_13_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_14_chk" /> IO-1.4</label><input id="pv_io_14_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">RE</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_re_11_chk" /> RE-1.1</label><input id="pv_re_11_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_12_chk" /> RE-1.2</label><input id="pv_re_12_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_13_chk" /> RE-1.3</label><input id="pv_re_13_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_14_chk" /> RE-1.4</label><input id="pv_re_14_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">IM</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_im_11_chk" /> IM-1.1</label><input id="pv_im_11_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_12_chk" /> IM-1.2</label><input id="pv_im_12_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_13_chk" /> IM-1.3</label><input id="pv_im_13_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_14_chk" /> IM-1.4</label><input id="pv_im_14_dt" type="date" class="input" />
+              </div>
+            </div>
+
+            <h4 class="font-semibold">Traccia 2</h4>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="font-medium">IO</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_io_21_chk" /> IO-2.1</label><input id="pv_io_21_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_22_chk" /> IO-2.2</label><input id="pv_io_22_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_23_chk" /> IO-2.3</label><input id="pv_io_23_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_24_chk" /> IO-2.4</label><input id="pv_io_24_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">RE</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_re_21_chk" /> RE-2.1</label><input id="pv_re_21_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_22_chk" /> RE-2.2</label><input id="pv_re_22_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_23_chk" /> RE-2.3</label><input id="pv_re_23_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_24_chk" /> RE-2.4</label><input id="pv_re_24_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">IM</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_im_21_chk" /> IM-2.1</label><input id="pv_im_21_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_22_chk" /> IM-2.2</label><input id="pv_im_22_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_23_chk" /> IM-2.3</label><input id="pv_im_23_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_24_chk" /> IM-2.4</label><input id="pv_im_24_dt" type="date" class="input" />
+              </div>
+            </div>
+
+            <h4 class="font-semibold">Traccia 3</h4>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="font-medium">IO</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_io_31_chk" /> IO-3.1</label><input id="pv_io_31_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_32_chk" /> IO-3.2</label><input id="pv_io_32_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_33_chk" /> IO-3.3</label><input id="pv_io_33_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_io_34_chk" /> IO-3.4</label><input id="pv_io_34_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">RE</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_re_31_chk" /> RE-3.1</label><input id="pv_re_31_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_32_chk" /> RE-3.2</label><input id="pv_re_32_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_33_chk" /> RE-3.3</label><input id="pv_re_33_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_re_34_chk" /> RE-3.4</label><input id="pv_re_34_dt" type="date" class="input" />
+              </div>
+              <div class="font-medium">IM</div>
+              <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                <label><input type="checkbox" id="pv_im_31_chk" /> IM-3.1</label><input id="pv_im_31_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_32_chk" /> IM-3.2</label><input id="pv_im_32_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_33_chk" /> IM-3.3</label><input id="pv_im_33_dt" type="date" class="input" />
+                <label><input type="checkbox" id="pv_im_34_chk" /> IM-3.4</label><input id="pv_im_34_dt" type="date" class="input" />
+              </div>
+            </div>
+            <div class="mt-2"><label class="block text-sm">Note</label><textarea id="pv_note" class="textarea"></textarea></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Specialità</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Specialità</label><input id="sp_nome" class="input" /></div>
+            <div class="md:col-span-2 grid grid-cols-2 gap-2">
+              <label><input type="checkbox" id="sp_p1_chk" /> Prova 1</label><input id="sp_p1_dt" type="date" class="input" />
+              <label><input type="checkbox" id="sp_p2_chk" /> Prova 2</label><input id="sp_p2_dt" type="date" class="input" />
+              <label><input type="checkbox" id="sp_p3_chk" /> Prova 3</label><input id="sp_p3_dt" type="date" class="input" />
+              <label><input type="checkbox" id="sp_cr_chk" /> Prova CR</label><input id="sp_cr_dt" type="date" class="input" />
+            </div>
+            <div class="md:col-span-2"><label class="block text-sm">Note</label><textarea id="sp_note" class="textarea"></textarea></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Eventi</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Campo Estivo 1</label><div class="grid grid-cols-2 gap-2"><input id="ev_ce1_dt" type="date" class="input" /><input id="ev_ce1_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Campo Estivo 2</label><div class="grid grid-cols-2 gap-2"><input id="ev_ce2_dt" type="date" class="input" /><input id="ev_ce2_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Campo Estivo 3</label><div class="grid grid-cols-2 gap-2"><input id="ev_ce3_dt" type="date" class="input" /><input id="ev_ce3_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Campo Estivo 4</label><div class="grid grid-cols-2 gap-2"><input id="ev_ce4_dt" type="date" class="input" /><input id="ev_ce4_tx" class="input" /></div></div>
+            <div><label class="block text-sm">CCP</label><div class="grid grid-cols-2 gap-2"><input id="ev_ccp_dt" type="date" class="input" /><input id="ev_ccp_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Tecnicamp 1</label><div class="grid grid-cols-2 gap-2"><input id="ev_tc1_dt" type="date" class="input" /><input id="ev_tc1_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Tecnicamp 2</label><div class="grid grid-cols-2 gap-2"><input id="ev_tc2_dt" type="date" class="input" /><input id="ev_tc2_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Tecnicamp 3</label><div class="grid grid-cols-2 gap-2"><input id="ev_tc3_dt" type="date" class="input" /><input id="ev_tc3_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Tecnicamp 4</label><div class="grid grid-cols-2 gap-2"><input id="ev_tc4_dt" type="date" class="input" /><input id="ev_tc4_tx" class="input" /></div></div>
+            <div><label class="block text-sm">Jamboree</label><div class="grid grid-cols-2 gap-2"><input id="ev_jam_dt" type="date" class="input" /><input id="ev_jam_tx" class="input" /></div></div>
+            <div class="md:col-span-2"><label class="block text-sm">Note</label><textarea id="ev_note" class="textarea"></textarea></div>
+          </div>
+        </section>
+
+        <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
+          <h3 class="text-xl font-semibold text-gray-700 mb-4">Documenti</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div><label class="block text-sm">Quota Annua 1</label><input id="doc_quota1" type="date" class="input" /></div>
+            <div><label class="block text-sm">Quota Annua 2</label><input id="doc_quota2" type="date" class="input" /></div>
+            <div><label class="block text-sm">Quota Annua 3</label><input id="doc_quota3" type="date" class="input" /></div>
+            <div><label class="block text-sm">Quota Annua 4</label><input id="doc_quota4" type="date" class="input" /></div>
+            <div><label class="block text-sm">Iscrizione</label><input id="doc_iscr" type="date" class="input" /></div>
+            <div><label class="block text-sm">Modulo sanitario</label><input id="doc_san" type="date" class="input" /></div>
+            <div><label class="block text-sm">Modulo Privacy</label><input id="doc_priv" type="date" class="input" /></div>
+            <div><label class="block text-sm">Note</label><input id="doc_note" type="date" class="input" /></div>
+          </div>
+        </section>
+
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnAnnulla" class="btn-secondary">Annulla</button>
+          <button class="btn-primary">Salva</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script type="module" src="shared.js"></script>
+  <script type="module" src="scout.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrato:", reg.scope))
+        .catch(err => console.error("SW registration failed:", err));
+    }
+  </script>
+</body>
+</html>
+
+

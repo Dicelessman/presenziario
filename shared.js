@@ -97,9 +97,18 @@ class LocalAdapter {
   }
   
   async updateScout({ id, nome, cognome }, currentUser) {
-    const s = this.state.scouts.find(x => x.id === id); 
-    if (s) { s.nome = nome; s.cognome = cognome; this.persist(); }
-    console.log('LocalAdapter: updateScout', { id, nome, cognome, currentUser: currentUser?.email });
+    const s = this.state.scouts.find(x => x.id === id);
+    if (s) {
+      // Unisci tutti i campi passati
+      Object.assign(s, { nome, cognome });
+      // Se sono stati passati altri campi nel payload originale, includili
+      // Nota: la funzione è invocata con un oggetto già unito in DATA.updateScout
+      for (const [k, v] of Object.entries(arguments[0] || {})) {
+        if (k !== 'id') s[k] = v;
+      }
+      this.persist();
+    }
+    console.log('LocalAdapter: updateScout', { id, currentUser: currentUser?.email });
   }
   
   async deleteScout(id, currentUser) {
@@ -230,9 +239,9 @@ class FirestoreAdapter {
   }
   
   async updateScout({ id, nome, cognome }, currentUser) {
-    await setDoc(doc(this.db, 'scouts', id), { nome, cognome }, { merge: true });
+    await setDoc(doc(this.db, 'scouts', id), { nome, cognome, ...arguments[0] }, { merge: true });
     if (currentUser) { 
-      await this.addAuditLog('update', 'scouts', id, { nome, cognome }, currentUser.uid, currentUser.email); 
+      await this.addAuditLog('update', 'scouts', id, arguments[0], currentUser.uid, currentUser.email); 
     }
   }
   
