@@ -5,7 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import {
   getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot, getDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 // ============== Data Layer ==============
 class LocalAdapter {
@@ -309,11 +309,15 @@ const UI = {
       await this.loadSharedComponents();
       
       // Inizializza Firebase Auth
+      // Imposta persistenza locale della sessione
+      try { await setPersistence(getAuth(), browserLocalPersistence); } catch(e) { console.warn('Auth persistence set failed:', e); }
+
       onAuthStateChanged(DATA.adapter.auth, async (user) => {
         this.currentUser = user;
         if (user) {
           this.qs('#loggedInUserEmail').textContent = user.email;
           this.qs('#logoutButton').style.display = 'block';
+          this.closeModal('loginModal');
           this.state = await DATA.loadAll();
           this.rebuildPresenceIndex();
           this.setupEventListeners();
@@ -366,18 +370,28 @@ const UI = {
     }
     
     // Login form
-    this.qs('#loginForm').addEventListener('submit', async (e) => {
+    const loginForm = this.qs('#loginForm');
+    if (loginForm) loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = this.qs('#loginEmail').value;
+      const email = this.qs('#loginEmail').value.trim();
       const password = this.qs('#loginPassword').value;
       const loginError = this.qs('#loginError');
-      
       loginError.textContent = '';
+      console.log('Tentativo login per:', email);
       try {
         await signInWithEmailAndPassword(DATA.adapter.auth, email, password);
+        console.log('Login riuscito per:', email);
       } catch (error) {
-        loginError.textContent = 'Credenziali non valide';
-        console.error('Login error:', error);
+        console.error('Login error:', error.code, error.message);
+        let msg = 'Accesso non riuscito.';
+        switch (error.code) {
+          case 'auth/invalid-email': msg = 'Email non valida.'; break;
+          case 'auth/user-disabled': msg = 'Utente disabilitato.'; break;
+          case 'auth/user-not-found': msg = 'Utente non trovato.'; break;
+          case 'auth/wrong-password': msg = 'Password errata.'; break;
+          case 'auth/too-many-requests': msg = 'Troppi tentativi, riprova più tardi.'; break;
+        }
+        loginError.textContent = msg;
       }
     });
     
