@@ -15,7 +15,8 @@ UI.setupPresenceEventListeners = function() {
 };
 
 UI.getActivitiesSorted = function() {
-  return [...(this.state.activities || [])].sort((a, b) => new Date(a.data) - new Date(b.data));
+  const toDate = (v) => (v && v.toDate) ? v.toDate() : new Date(v);
+  return [...(this.state.activities || [])].sort((a, b) => toDate(a.data) - toDate(b.data));
 };
 
 UI.getPresence = function(scoutId, activityId) {
@@ -56,13 +57,26 @@ UI.renderPresenceTable = function() {
   const totalScouts = (this.state.scouts || []).length;
   const acts = this.getActivitiesSorted();
 
+  // Calcola la prossima attività (>= oggi)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let nextActivityId = null;
+  for (const a of acts) {
+    const ad = (a.data && a.data.toDate) ? a.data.toDate() : new Date(a.data);
+    const aday = new Date(ad); aday.setHours(0,0,0,0);
+    if (aday >= today) { nextActivityId = a.id; break; }
+  }
+
   // Header
   acts.forEach(a => {
     const presentCount = this.getDedupedPresences().filter(p => p.attivitaId === a.id && p.stato === 'Presente').length;
     const perc = totalScouts ? Math.round((presentCount / totalScouts) * 100) : 0;
     const displayDate = this.formatDisplayDate(a.data);
-    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-800 text-white font-semibold sticky top-0 border-r border-white/40">${displayDate}</th>`);
-    thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 bg-green-800 text-white font-semibold sticky top-0 border-r border-white/40">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
+    const isNext = a.id === nextActivityId;
+    const thDateClasses = isNext ? 'bg-green-900' : 'bg-green-800';
+    const thNameClasses = isNext ? 'bg-green-900' : 'bg-green-800';
+    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thDateClasses} text-white font-semibold sticky top-0 border-r border-white/40">${displayDate}${isNext ? ' <span class="text-xs">(Prossima)</span>' : ''}</th>`);
+    thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thNameClasses} text-white font-semibold sticky top-0 border-r border-white/40">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
   });
 
   // Sort handler su intestazione Esploratore
@@ -95,8 +109,10 @@ UI.renderPresenceTable = function() {
       const presence = this.getPresence(s.id, a.id) || { stato:'NR', pagato:false, tipoPagamento:null };
       const disabled = (this.selectedStaffId && this.currentUser) ? '' : 'disabled';
       const needsPayment = parseFloat(a.costo || '0') > 0;
+      const isNext = a.id === nextActivityId;
+      const cellHighlight = isNext ? ' style="outline: 2px solid #065f46; outline-offset: -2px;"' : '';
 
-      row += `<td class="p-2 border-r border-b border-gray-200">
+      row += `<td class="p-2 border-r border-b border-gray-200"${cellHighlight}>
         <div class="flex flex-col items-center gap-1">
           <select class="presence-select" data-selected="${presence.stato}" ${disabled}
             onchange="UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
