@@ -38,14 +38,15 @@ UI.renderAuditLogs = async function() {
     const rows = logs.map(l => {
       const d = this.toJsDate(l.timestamp);
       const ds = isNaN(d) ? '' : d.toLocaleString('it-IT');
+      // Ricava nome staff da email se possibile
+      const staffMember = (this.state.staff || []).find(s => (s.email || '').toLowerCase() === (l.userEmail || '').toLowerCase());
+      const displayName = staffMember ? `${staffMember.nome} ${staffMember.cognome}` : '';
       return `
         <tr class="border-b last:border-0">
           <td class="p-2 whitespace-nowrap">${ds}</td>
           <td class="p-2 font-medium">${l.action}</td>
-          <td class="p-2">${l.collection}</td>
-          <td class="p-2 text-gray-600">${l.documentId || ''}</td>
+          <td class="p-2">${escapeHtml(displayName)}</td>
           <td class="p-2 text-gray-600 text-sm">${escapeHtml(JSON.stringify(l.changes || {}))}</td>
-          <td class="p-2">${l.userEmail || ''}</td>
         </tr>
       `;
     }).join('');
@@ -57,10 +58,8 @@ UI.renderAuditLogs = async function() {
             <tr>
               <th class="p-2">Data</th>
               <th class="p-2">Azione</th>
-              <th class="p-2">Collezione</th>
-              <th class="p-2">Documento</th>
-              <th class="p-2">Modifiche</th>
-              <th class="p-2">Utente</th>
+              <th class="p-2">Chi</th>
+              <th class="p-2">Cosa</th>
             </tr>
           </thead>
           <tbody class="divide-y">
