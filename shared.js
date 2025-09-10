@@ -617,6 +617,38 @@ const UI = {
       try { this.renderDashboardCharts(); } catch {}
     }
   },
+
+  // Helpers Calendario: apertura modali modifica/elimina attivita
+  openEditActivityModal(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per modificare attività.'); return; }
+    const a = (this.state.activities || []).find(x => x.id === id);
+    if (!a) return;
+    const d = this.toJsDate(a.data);
+    const yyyyMmDd = isNaN(d) ? '' : d.toISOString().split('T')[0];
+    const tipoEl = this.qs('#editActivityTipo');
+    const dataEl = this.qs('#editActivityData');
+    const descEl = this.qs('#editActivityDescrizione');
+    const costoEl = this.qs('#editActivityCosto');
+    const idEl = this.qs('#editActivityId');
+    if (idEl) idEl.value = a.id;
+    if (tipoEl) tipoEl.value = a.tipo;
+    if (dataEl) dataEl.value = yyyyMmDd;
+    if (descEl) descEl.value = a.descrizione || '';
+    if (costoEl) costoEl.value = a.costo || '';
+    this.showModal('editActivityModal');
+  },
+
+  confirmDeleteActivity(id) {
+    if (!this.currentUser) { alert('Devi essere loggato per eliminare attività.'); return; }
+    const a = (this.state.activities || []).find(x => x.id === id);
+    if (!a) return;
+    this.activityToDeleteId = id;
+    const d = this.toJsDate(a.data);
+    const ds = isNaN(d) ? '' : d.toLocaleDateString('it-IT');
+    const infoEl = this.qs('#activityInfoToDelete');
+    if (infoEl) infoEl.textContent = `${a.tipo} — ${ds}${a.descrizione ? ' — ' + a.descrizione : ''}`;
+    this.showModal('confirmDeleteActivityModal');
+  },
 };
 
 // Inizializza quando il DOM è pronto
