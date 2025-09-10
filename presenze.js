@@ -227,8 +227,13 @@ UI.renderPresenceTable = function() {
       // Scroll
       UI.scrollToActivityIndex(nextActivityIndex);
     } else {
-      const targetScroll = prevScroll || (savedScroll ? parseInt(savedScroll, 10) : 0);
-      container.scrollLeft = isNaN(targetScroll) ? 0 : targetScroll;
+      const targetScroll = (savedScroll ? parseInt(savedScroll, 10) : NaN);
+      if (!isNaN(targetScroll)) {
+        container.scrollLeft = targetScroll;
+      } else {
+        // Nessuna prossima attività e nessuno scroll salvato: mostra la prima data
+        UI.scrollToActivityIndex(0);
+      }
     }
     // Salva scroll su evento
     if (!container._scrollSaveBound) {
