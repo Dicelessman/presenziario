@@ -24,7 +24,7 @@ UI.renderDashboardCharts = function() {
   this._destroyCharts();
 
   // Dati per grafico Presenza per Esploratore (percentuale presenze sul totale attività)
-  const dedup = presences; // presenze già non-normalizzate lato Firestore
+  const dedup = presences;
   const scoutLabels = scouts.map(s => `${s.nome} ${s.cognome}`);
   const scoutPerc = scouts.map(s => {
     const presentCount = dedup.filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
@@ -39,37 +39,40 @@ UI.renderDashboardCharts = function() {
   });
   const actData = activities.map(a => dedup.filter(p => p.attivitaId === a.id && p.stato === 'Presente').length);
 
-  // Empty states: se non ci sono dati, mostra grafici vuoti coerenti
+  // Datalabels
   const ChartDataLabels = window.ChartDataLabels;
   if (window.Chart && ChartDataLabels) {
     window.Chart.register(ChartDataLabels);
   }
+
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 8, right: 12, bottom: 8, left: 12 } },
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        color: '#fff',
+        formatter: v => v > 0 ? (typeof v === 'number' && v <= 100 ? v.toFixed(1) + '%' : v) : '',
+        anchor: 'end', align: 'end', offset: -5, font: { weight: 'bold' }
+      }
+    },
+    elements: { bar: { borderRadius: 4, maxBarThickness: 28 } }
+  };
 
   // Grafico Scout
   this._charts.scout = new window.Chart(ctxScout.getContext('2d'), {
     type: 'bar',
     data: {
       labels: scoutLabels,
-      datasets: [{
-        label: 'Presenza %',
-        data: scoutPerc,
-        backgroundColor: '#16a34a'
-      }]
+      datasets: [{ label: 'Presenza %', data: scoutPerc, backgroundColor: '#16a34a' }]
     },
     options: {
+      ...commonOptions,
       indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
-        x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
-      },
-      plugins: {
-        legend: { display: false },
-        datalabels: {
-          color: '#fff',
-          formatter: v => v > 0 ? v.toFixed(1) + '%' : '',
-          anchor: 'end', align: 'end', offset: -5, font: { weight: 'bold' }
-        }
+        x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
+        y: { ticks: { autoSkip: false, maxTicksLimit: 20 } }
       }
     }
   });
@@ -79,25 +82,20 @@ UI.renderDashboardCharts = function() {
     type: 'bar',
     data: {
       labels: actLabels,
-      datasets: [{
-        label: 'Presenze',
-        data: actData,
-        backgroundColor: '#16a34a'
-      }]
+      datasets: [{ label: 'Presenze', data: actData, backgroundColor: '#16a34a' }]
     },
     options: {
+      ...commonOptions,
       indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
-        x: { beginAtZero: true, max: Math.max(1, scouts.length) + 1 }
+        x: { beginAtZero: true, max: Math.max(1, scouts.length) },
+        y: { ticks: { autoSkip: false, maxTicksLimit: 20 } }
       },
       plugins: {
-        legend: { display: false },
+        ...commonOptions.plugins,
         datalabels: {
-          color: '#fff',
-          formatter: v => v > 0 ? `${v} / ${scouts.length}` : '',
-          anchor: 'end', align: 'end', offset: -5, font: { weight: 'bold' }
+          ...commonOptions.plugins.datalabels,
+          formatter: v => v > 0 ? `${v} / ${scouts.length}` : ''
         }
       }
     }
