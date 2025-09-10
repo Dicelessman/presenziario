@@ -190,9 +190,9 @@ UI.renderPresenceTable = function() {
       const disabled = (this.selectedStaffId && this.currentUser) ? '' : 'disabled';
       const needsPayment = parseFloat(a.costo || '0') > 0;
       const isNext = a.id === nextActivityId;
-      const cellHighlight = isNext ? ' style=\"outline: 2px solid #065f46; outline-offset: -2px;\"' : '';
+      const cellClass = isNext ? ' next-col' : '';
 
-      row += `<td class=\"p-2 border-r border-b border-gray-200\"${cellHighlight}>
+      row += `<td class=\"p-2 border-r border-b border-gray-200${cellClass}\">
         <div class=\"flex flex-col items-center gap-1\">
           <select class=\"presence-select\" data-selected=\"${presence.stato}\" ${disabled}
             onchange=\"UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})\">
