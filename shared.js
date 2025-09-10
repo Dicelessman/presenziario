@@ -327,6 +327,14 @@ const UI = {
           this.closeModal('loginModal');
           this.state = await DATA.loadAll();
           this.rebuildPresenceIndex();
+          // Selezione staff: auto-seleziona se email corrisponde, altrimenti apri modale
+          const match = (this.state.staff || []).find(s => (s.email || '').toLowerCase() === (user.email || '').toLowerCase());
+          if (match) {
+            this.selectStaff(match.id);
+          } else {
+            this.renderStaffSelectionList();
+            this.showModal('staffSelectionModal');
+          }
           this.renderCurrentPage();
         } else {
           this.qs('#loggedInUserEmail').textContent = '';
@@ -496,6 +504,33 @@ const UI = {
       this.rebuildPresenceIndex(); 
       this.renderCurrentPage();
     });
+  },
+
+  renderStaffSelectionList() {
+    const container = this.qs('#staffListForSelection');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!this.state.staff || !this.state.staff.length) {
+      container.innerHTML = '<p class="text-gray-500">Nessun membro staff disponibile.</p>';
+      return;
+    }
+    this.state.staff.forEach(member => {
+      const btn = document.createElement('button');
+      btn.className = 'w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg';
+      btn.textContent = `${member.nome} ${member.cognome}${member.email ? ' — ' + member.email : ''}`;
+      btn.addEventListener('click', () => this.selectStaff(member.id));
+      container.appendChild(btn);
+    });
+  },
+
+  selectStaff(id) {
+    this.selectedStaffId = id;
+    const m = (this.state.staff || []).find(s => s.id === id);
+    const label = this.qs('#selectedStaffName');
+    if (label) label.textContent = m ? `${m.nome} ${m.cognome}` : 'Nessuno';
+    this.closeModal('staffSelectionModal');
+    // Rirender per abilitare le select nelle tabelle
+    this.renderCurrentPage();
   },
   
   renderCurrentPage() {
