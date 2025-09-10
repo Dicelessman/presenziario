@@ -7,11 +7,65 @@ UI.renderCurrentPage = function() {
 };
 
 UI.setupPresenceEventListeners = function() {
-  // Event listeners specifici per le presenze (mobile nav già opzionali)
+  // Event listeners specifici per le presenze (mobile nav)
   const prev = this.qs('#mobileActivityPrev');
   const next = this.qs('#mobileActivityNext');
-  if (prev) prev.addEventListener('click', () => console.log('Prev activity'));
-  if (next) next.addEventListener('click', () => console.log('Next activity'));
+  const picker = this.qs('#mobileActivityPicker');
+  if (prev) prev.addEventListener('click', () => {
+    if (!picker) return;
+    const idx = Math.max(0, picker.selectedIndex - 1);
+    picker.selectedIndex = idx;
+    UI.scrollToActivityIndex(idx);
+  });
+  if (next) next.addEventListener('click', () => {
+    if (!picker) return;
+    const max = Math.max(0, (picker.options.length || 1) - 1);
+    const idx = Math.min(max, picker.selectedIndex + 1);
+    picker.selectedIndex = idx;
+    UI.scrollToActivityIndex(idx);
+  });
+  if (picker && !picker._bound) {
+    picker._bound = true;
+    picker.addEventListener('change', () => UI.scrollToActivityIndex(picker.selectedIndex));
+  }
+
+  // Toggle Oggi/Prossima
+  const jumpBtn = this.qs('#jumpToggle');
+  if (jumpBtn && !jumpBtn._bound) {
+    jumpBtn._bound = true;
+    jumpBtn.addEventListener('click', () => {
+      const acts = UI.getActivitiesSorted();
+      if (!acts.length) return;
+      const { todayIndex, nextIndex } = UI._getTodayAndNextIndexes(acts);
+      // Se il bottone dice "Vai a Prossima" -> vai a nextIndex, altrimenti vai a todayIndex
+      const target = jumpBtn.dataset.mode === 'next' ? todayIndex : nextIndex;
+      if (target >= 0) {
+        UI.scrollToActivityIndex(target);
+        const picker = UI.qs('#mobileActivityPicker');
+        if (picker) picker.selectedIndex = target;
+      }
+      // toggle label e mode
+      if (jumpBtn.dataset.mode === 'next') {
+        jumpBtn.textContent = 'Vai a Prossima';
+        jumpBtn.dataset.mode = 'today';
+      } else {
+        jumpBtn.textContent = 'Vai a Oggi';
+        jumpBtn.dataset.mode = 'next';
+      }
+    });
+  }
+};
+
+UI._getTodayAndNextIndexes = function(acts) {
+  const toDate = (v) => (v && v.toDate) ? v.toDate() : new Date(v);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let todayIndex = -1; let nextIndex = -1;
+  acts.forEach((a, idx) => {
+    const d = toDate(a.data); const dd = new Date(d); dd.setHours(0,0,0,0);
+    if (dd.getTime() === today.getTime()) todayIndex = idx;
+    if (nextIndex === -1 && dd >= today) nextIndex = idx;
+  });
+  return { todayIndex, nextIndex };
 };
 
 UI.getActivitiesSorted = function() {
@@ -40,6 +94,17 @@ UI.formatDisplayDate = function(value) {
 UI._scoutSortDir = UI._scoutSortDir || 'asc';
 UI._presenceTableScrollLeft = UI._presenceTableScrollLeft || 0;
 
+UI.scrollToActivityIndex = function(index) {
+  const container = this.qs('#presenceTableContainer');
+  const thDates = this.qs('#tableHeaderDates');
+  if (!container || !thDates) return;
+  // +1 per saltare la prima colonna "Esploratore"
+  const targetTh = thDates.children[index + 1];
+  if (!targetTh) return;
+  const left = targetTh.offsetLeft - 16; // piccolo padding
+  container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+};
+
 UI.renderPresenceTable = function() {
   const body = this.qs('#presenceTableBody');
   const thDates = this.qs('#tableHeaderDates');
@@ -61,10 +126,25 @@ UI.renderPresenceTable = function() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   let nextActivityId = null;
-  for (const a of acts) {
+  let nextActivityIndex = -1;
+  acts.forEach((a, idx) => {
     const ad = (a.data && a.data.toDate) ? a.data.toDate() : new Date(a.data);
     const aday = new Date(ad); aday.setHours(0,0,0,0);
-    if (aday >= today) { nextActivityId = a.id; break; }
+    if (nextActivityId === null && aday >= today) { nextActivityId = a.id; nextActivityIndex = idx; }
+  });
+
+  // Popola picker mobile
+  const picker = this.qs('#mobileActivityPicker');
+  if (picker) {
+    picker.innerHTML = '';
+    acts.forEach((a, idx) => {
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = UI.formatDisplayDate(a.data);
+      opt.dataset.index = String(idx);
+      picker.appendChild(opt);
+    });
+    picker.selectedIndex = nextActivityIndex >= 0 ? nextActivityIndex : 0;
   }
 
   // Header
@@ -75,7 +155,7 @@ UI.renderPresenceTable = function() {
     const isNext = a.id === nextActivityId;
     const thDateClasses = isNext ? 'bg-green-900' : 'bg-green-800';
     const thNameClasses = isNext ? 'bg-green-900' : 'bg-green-800';
-    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thDateClasses} text-white font-semibold sticky top-0 border-r border-white/40">${displayDate}${isNext ? ' <span class="text-xs">(Prossima)</span>' : ''}</th>`);
+    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thDateClasses} text-white font-semibold sticky top-0 border-r border-white/40">${displayDate}${isNext ? ' <span class=\"text-xs\">(Prossima)</span>' : ''}</th>`);
     thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thNameClasses} text-white font-semibold sticky top-0 border-r border-white/40">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
   });
 
@@ -101,8 +181,8 @@ UI.renderPresenceTable = function() {
     const totalActs = (this.state.activities || []).length;
     const presentCount = this.getDedupedPresences().filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
     const perc = totalActs ? Math.round((presentCount / totalActs) * 100) : 0;
-    let row = `<tr><td class="p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0">${s.nome} ${s.cognome}
-      <div class="text-xs font-normal text-gray-500">${presentCount} / ${totalActs} (${perc}%)</div>
+    let row = `<tr><td class=\"p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0\">${s.nome} ${s.cognome}
+      <div class=\"text-xs font-normal text-gray-500\">${presentCount} / ${totalActs} (${perc}%)</div>
     </td>`;
 
     acts.forEach(a => {
@@ -110,24 +190,24 @@ UI.renderPresenceTable = function() {
       const disabled = (this.selectedStaffId && this.currentUser) ? '' : 'disabled';
       const needsPayment = parseFloat(a.costo || '0') > 0;
       const isNext = a.id === nextActivityId;
-      const cellHighlight = isNext ? ' style="outline: 2px solid #065f46; outline-offset: -2px;"' : '';
+      const cellHighlight = isNext ? ' style=\"outline: 2px solid #065f46; outline-offset: -2px;\"' : '';
 
-      row += `<td class="p-2 border-r border-b border-gray-200"${cellHighlight}>
-        <div class="flex flex-col items-center gap-1">
-          <select class="presence-select" data-selected="${presence.stato}" ${disabled}
-            onchange="UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
-            <option value="Presente" ${presence.stato==='Presente'?'selected':''}>P</option>
-            <option value="Assente" ${presence.stato==='Assente'?'selected':''}>A</option>
-            <option value="NR" ${presence.stato==='NR'?'selected':''}>NR</option>
+      row += `<td class=\"p-2 border-r border-b border-gray-200\"${cellHighlight}>
+        <div class=\"flex flex-col items-center gap-1\">
+          <select class=\"presence-select\" data-selected=\"${presence.stato}\" ${disabled}
+            onchange=\"UI.updatePresenceCell({field:'stato', value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})\">
+            <option value=\"Presente\" ${presence.stato==='Presente'?'selected':''}>P</option>
+            <option value=\"Assente\" ${presence.stato==='Assente'?'selected':''}>A</option>
+            <option value=\"NR\" ${presence.stato==='NR'?'selected':''}>NR</option>
           </select>
           ${needsPayment ? `
-          <div class="payment-section">
-            <select class="payment-select mt-1" data-selected="${presence.pagato ? (presence.tipoPagamento || 'Pagato') : ''}" ${disabled}
-              onchange="UI.updatePaymentCombined({value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})">
-              <option value="" ${!presence.pagato?'selected':''}>Non Pagato</option>
-              <option value="Contanti" ${(presence.pagato && presence.tipoPagamento==='Contanti')?'selected':''}>Contanti</option>
-              <option value="Satispay" ${(presence.pagato && presence.tipoPagamento==='Satispay')?'selected':''}>Satispay</option>
-              <option value="Bonifico" ${(presence.pagato && presence.tipoPagamento==='Bonifico')?'selected':''}>Bonifico</option>
+          <div class=\"payment-section\">
+            <select class=\"payment-select mt-1\" data-selected=\"${presence.pagato ? (presence.tipoPagamento || 'Pagato') : ''}\" ${disabled}
+              onchange=\"UI.updatePaymentCombined({value:this.value, scoutId:'${s.id}', activityId:'${a.id}'})\">
+              <option value=\"\" ${!presence.pagato?'selected':''}>Non Pagato</option>
+              <option value=\"Contanti\" ${(presence.pagato && presence.tipoPagamento==='Contanti')?'selected':''}>Contanti</option>
+              <option value=\"Satispay\" ${(presence.pagato && presence.tipoPagamento==='Satispay')?'selected':''}>Satispay</option>
+              <option value=\"Bonifico\" ${(presence.pagato && presence.tipoPagamento==='Bonifico')?'selected':''}>Bonifico</option>
             </select>
           </div>` : ''}
         </div>
@@ -138,10 +218,18 @@ UI.renderPresenceTable = function() {
     body.insertAdjacentHTML('beforeend', row);
   });
 
-  // Ripristina posizione di scroll
+  // Auto-scroll alla prossima attività (o mantieni scroll salvato)
   if (container) {
-    const targetScroll = prevScroll || (savedScroll ? parseInt(savedScroll, 10) : 0);
-    container.scrollLeft = isNaN(targetScroll) ? 0 : targetScroll;
+    if (nextActivityIndex >= 0) {
+      // Seleziona picker coerente
+      const picker = this.qs('#mobileActivityPicker');
+      if (picker) picker.selectedIndex = nextActivityIndex;
+      // Scroll
+      UI.scrollToActivityIndex(nextActivityIndex);
+    } else {
+      const targetScroll = prevScroll || (savedScroll ? parseInt(savedScroll, 10) : 0);
+      container.scrollLeft = isNaN(targetScroll) ? 0 : targetScroll;
+    }
     // Salva scroll su evento
     if (!container._scrollSaveBound) {
       container._scrollSaveBound = true;
