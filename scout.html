@@ -85,81 +85,183 @@
           </div>
 
           <div class="space-y-4 mt-4">
-            <h4 class="font-semibold">Traccia 1</h4>
-            <div class="grid md:grid-cols-3 gap-4">
-              <div class="font-medium">IO</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_io_11_chk" /> IO-1.1</label><input id="pv_io_11_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_12_chk" /> IO-1.2</label><input id="pv_io_12_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_13_chk" /> IO-1.3</label><input id="pv_io_13_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_14_chk" /> IO-1.4</label><input id="pv_io_14_dt" type="date" class="input" />
+            <div class="flex items-center gap-4">
+              <h4 class="font-semibold">Traccia 1</h4>
+              <label class="flex items-center gap-2">
+                <input type="checkbox" id="pv_traccia1_chk" />
+                <span>Completata</span>
+              </label>
+              <input id="pv_traccia1_dt" type="date" class="input" placeholder="Data completamento" />
+            </div>
+            <div class="space-y-2 ml-4">
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_11_chk" /> IO-1.1</label>
+                <input id="pv_io_11_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">RE</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_re_11_chk" /> RE-1.1</label><input id="pv_re_11_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_12_chk" /> RE-1.2</label><input id="pv_re_12_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_13_chk" /> RE-1.3</label><input id="pv_re_13_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_14_chk" /> RE-1.4</label><input id="pv_re_14_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_12_chk" /> IO-1.2</label>
+                <input id="pv_io_12_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">IM</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_im_11_chk" /> IM-1.1</label><input id="pv_im_11_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_12_chk" /> IM-1.2</label><input id="pv_im_12_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_13_chk" /> IM-1.3</label><input id="pv_im_13_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_14_chk" /> IM-1.4</label><input id="pv_im_14_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_13_chk" /> IO-1.3</label>
+                <input id="pv_io_13_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_14_chk" /> IO-1.4</label>
+                <input id="pv_io_14_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_11_chk" /> RE-1.1</label>
+                <input id="pv_re_11_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_12_chk" /> RE-1.2</label>
+                <input id="pv_re_12_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_13_chk" /> RE-1.3</label>
+                <input id="pv_re_13_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_14_chk" /> RE-1.4</label>
+                <input id="pv_re_14_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_11_chk" /> IM-1.1</label>
+                <input id="pv_im_11_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_12_chk" /> IM-1.2</label>
+                <input id="pv_im_12_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_13_chk" /> IM-1.3</label>
+                <input id="pv_im_13_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_14_chk" /> IM-1.4</label>
+                <input id="pv_im_14_dt" type="date" class="input" />
               </div>
             </div>
 
-            <h4 class="font-semibold">Traccia 2</h4>
-            <div class="grid md:grid-cols-3 gap-4">
-              <div class="font-medium">IO</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_io_21_chk" /> IO-2.1</label><input id="pv_io_21_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_22_chk" /> IO-2.2</label><input id="pv_io_22_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_23_chk" /> IO-2.3</label><input id="pv_io_23_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_24_chk" /> IO-2.4</label><input id="pv_io_24_dt" type="date" class="input" />
+            <div class="flex items-center gap-4">
+              <h4 class="font-semibold">Traccia 2</h4>
+              <label class="flex items-center gap-2">
+                <input type="checkbox" id="pv_traccia2_chk" />
+                <span>Completata</span>
+              </label>
+              <input id="pv_traccia2_dt" type="date" class="input" placeholder="Data completamento" />
+            </div>
+            <div class="space-y-2 ml-4">
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_21_chk" /> IO-2.1</label>
+                <input id="pv_io_21_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">RE</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_re_21_chk" /> RE-2.1</label><input id="pv_re_21_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_22_chk" /> RE-2.2</label><input id="pv_re_22_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_23_chk" /> RE-2.3</label><input id="pv_re_23_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_24_chk" /> RE-2.4</label><input id="pv_re_24_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_22_chk" /> IO-2.2</label>
+                <input id="pv_io_22_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">IM</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_im_21_chk" /> IM-2.1</label><input id="pv_im_21_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_22_chk" /> IM-2.2</label><input id="pv_im_22_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_23_chk" /> IM-2.3</label><input id="pv_im_23_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_24_chk" /> IM-2.4</label><input id="pv_im_24_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_23_chk" /> IO-2.3</label>
+                <input id="pv_io_23_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_24_chk" /> IO-2.4</label>
+                <input id="pv_io_24_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_21_chk" /> RE-2.1</label>
+                <input id="pv_re_21_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_22_chk" /> RE-2.2</label>
+                <input id="pv_re_22_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_23_chk" /> RE-2.3</label>
+                <input id="pv_re_23_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_24_chk" /> RE-2.4</label>
+                <input id="pv_re_24_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_21_chk" /> IM-2.1</label>
+                <input id="pv_im_21_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_22_chk" /> IM-2.2</label>
+                <input id="pv_im_22_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_23_chk" /> IM-2.3</label>
+                <input id="pv_im_23_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_24_chk" /> IM-2.4</label>
+                <input id="pv_im_24_dt" type="date" class="input" />
               </div>
             </div>
 
-            <h4 class="font-semibold">Traccia 3</h4>
-            <div class="grid md:grid-cols-3 gap-4">
-              <div class="font-medium">IO</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_io_31_chk" /> IO-3.1</label><input id="pv_io_31_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_32_chk" /> IO-3.2</label><input id="pv_io_32_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_33_chk" /> IO-3.3</label><input id="pv_io_33_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_io_34_chk" /> IO-3.4</label><input id="pv_io_34_dt" type="date" class="input" />
+            <div class="flex items-center gap-4">
+              <h4 class="font-semibold">Traccia 3</h4>
+              <label class="flex items-center gap-2">
+                <input type="checkbox" id="pv_traccia3_chk" />
+                <span>Completata</span>
+              </label>
+              <input id="pv_traccia3_dt" type="date" class="input" placeholder="Data completamento" />
+            </div>
+            <div class="space-y-2 ml-4">
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_31_chk" /> IO-3.1</label>
+                <input id="pv_io_31_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">RE</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_re_31_chk" /> RE-3.1</label><input id="pv_re_31_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_32_chk" /> RE-3.2</label><input id="pv_re_32_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_33_chk" /> RE-3.3</label><input id="pv_re_33_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_re_34_chk" /> RE-3.4</label><input id="pv_re_34_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_32_chk" /> IO-3.2</label>
+                <input id="pv_io_32_dt" type="date" class="input" />
               </div>
-              <div class="font-medium">IM</div>
-              <div class="md:col-span-2 grid grid-cols-2 gap-2">
-                <label><input type="checkbox" id="pv_im_31_chk" /> IM-3.1</label><input id="pv_im_31_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_32_chk" /> IM-3.2</label><input id="pv_im_32_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_33_chk" /> IM-3.3</label><input id="pv_im_33_dt" type="date" class="input" />
-                <label><input type="checkbox" id="pv_im_34_chk" /> IM-3.4</label><input id="pv_im_34_dt" type="date" class="input" />
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_33_chk" /> IO-3.3</label>
+                <input id="pv_io_33_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_io_34_chk" /> IO-3.4</label>
+                <input id="pv_io_34_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_31_chk" /> RE-3.1</label>
+                <input id="pv_re_31_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_32_chk" /> RE-3.2</label>
+                <input id="pv_re_32_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_33_chk" /> RE-3.3</label>
+                <input id="pv_re_33_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_re_34_chk" /> RE-3.4</label>
+                <input id="pv_re_34_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_31_chk" /> IM-3.1</label>
+                <input id="pv_im_31_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_32_chk" /> IM-3.2</label>
+                <input id="pv_im_32_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_33_chk" /> IM-3.3</label>
+                <input id="pv_im_33_dt" type="date" class="input" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label><input type="checkbox" id="pv_im_34_chk" /> IM-3.4</label>
+                <input id="pv_im_34_dt" type="date" class="input" />
               </div>
             </div>
-            <div class="mt-2"><label class="block text-sm">Note</label><textarea id="pv_note" class="textarea"></textarea></div>
+            <div class="mt-4"><label class="block text-sm">Note</label><textarea id="pv_note" class="textarea"></textarea></div>
           </div>
         </section>
 
@@ -192,7 +294,7 @@
 
         <section class="bg-gray-50 p-6 rounded-lg shadow-inner">
           <h3 class="text-xl font-semibold text-gray-700 mb-4">Documenti</h3>
-          <div class="grid md:grid-cols-2 gap-4">
+          <div class="space-y-4">
             <div><label class="block text-sm">Quota Annua 1</label><input id="doc_quota1" type="date" class="input" /></div>
             <div><label class="block text-sm">Quota Annua 2</label><input id="doc_quota2" type="date" class="input" /></div>
             <div><label class="block text-sm">Quota Annua 3</label><input id="doc_quota3" type="date" class="input" /></div>
@@ -200,7 +302,7 @@
             <div><label class="block text-sm">Iscrizione</label><input id="doc_iscr" type="date" class="input" /></div>
             <div><label class="block text-sm">Modulo sanitario</label><input id="doc_san" type="date" class="input" /></div>
             <div><label class="block text-sm">Modulo Privacy</label><input id="doc_priv" type="date" class="input" /></div>
-            <div><label class="block text-sm">Note</label><input id="doc_note" type="date" class="input" /></div>
+            <div><label class="block text-sm">Note</label><textarea id="doc_note" class="textarea"></textarea></div>
           </div>
         </section>
 

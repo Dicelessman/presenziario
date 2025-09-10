@@ -57,6 +57,11 @@ UI.renderScoutPage = async function() {
   setVal('#pv_giglio_data', this.toYyyyMmDd(s.pv_giglio_data));
   setVal('#pv_giglio_note', s.pv_giglio_note);
 
+  // Traccia checkboxes e date
+  this.setCheckDate('pv_traccia1', s.pv_traccia1);
+  this.setCheckDate('pv_traccia2', s.pv_traccia2);
+  this.setCheckDate('pv_traccia3', s.pv_traccia3);
+
   this.setCheckDate('pv_io_11', s.pv_io_11);
   this.setCheckDate('pv_io_12', s.pv_io_12);
   this.setCheckDate('pv_io_13', s.pv_io_13);
@@ -278,10 +283,11 @@ UI.collectForm = function() {
     ev_ce1: pair('#ev_ce1'), ev_ce2: pair('#ev_ce2'), ev_ce3: pair('#ev_ce3'), ev_ce4: pair('#ev_ce4'),
     ev_ccp: pair('#ev_ccp'), ev_tc1: pair('#ev_tc1'), ev_tc2: pair('#ev_tc2'), ev_tc3: pair('#ev_tc3'), ev_tc4: pair('#ev_tc4'),
     ev_jam: pair('#ev_jam'), ev_note: get('#ev_note'),
+    pv_traccia1: cd('pv_traccia1'), pv_traccia2: cd('pv_traccia2'), pv_traccia3: cd('pv_traccia3'),
     doc_quota1: get('#doc_quota1') || null, doc_quota2: get('#doc_quota2') || null,
     doc_quota3: get('#doc_quota3') || null, doc_quota4: get('#doc_quota4') || null,
     doc_iscr: get('#doc_iscr') || null, doc_san: get('#doc_san') || null,
-    doc_priv: get('#doc_priv') || null, doc_note: get('#doc_note') || null,
+    doc_priv: get('#doc_priv') || null, doc_note: get('#doc_note'),
   };
 };
 
