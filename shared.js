@@ -712,6 +712,14 @@ const UI = {
       this.presenceIndex.set(key, p);
     });
   },
+
+  // Presenze deduplicate disponibili ovunque (non solo in presenze.js)
+  getDedupedPresences() {
+    if (this.presenceIndex && this.presenceIndex.size > 0) {
+      return Array.from(this.presenceIndex.values());
+    }
+    return Array.isArray(this.state.presences) ? this.state.presences : [];
+  },
   
   // Funzioni per audit logs
   async loadAuditLogs() {
@@ -741,6 +749,10 @@ const UI = {
     if (typeof this.renderDashboardCharts === 'function') {
       try { this.renderDashboardCharts(); } catch {}
     }
+    // Aggiorna anche la sezione pagamenti per attività se presente
+    if (typeof this.renderPaymentsPerActivity === 'function') {
+      try { this.renderPaymentsPerActivity(); } catch {}
+    }
   },
 
   async updatePaymentCombined({ value, scoutId, activityId }) {
@@ -758,6 +770,9 @@ const UI = {
     this.renderCurrentPage();
     if (typeof this.renderDashboardCharts === 'function') {
       try { this.renderDashboardCharts(); } catch {}
+    }
+    if (typeof this.renderPaymentsPerActivity === 'function') {
+      try { this.renderPaymentsPerActivity(); } catch {}
     }
   },
 
