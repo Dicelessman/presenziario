@@ -124,13 +124,17 @@ UI.renderPaymentsPerActivity = function() {
 
   const rows = paidActivities.map(a => {
     const costo = parseFloat(a.costo || '0') || 0;
-    const expected = costo * scouts.length;
     const payers = scouts.map(s => {
       const p = presences.find(x => x.esploratoreId === s.id && x.attivitaId === a.id);
-      return { scout: s, paid: !!p?.pagato, method: p?.tipoPagamento || null };
+      const stato = p?.stato || 'NR';
+      const eligibleForPayment = (stato !== 'Assente');
+      return { scout: s, paid: !!p?.pagato, method: p?.tipoPagamento || null, stato, eligibleForPayment };
     });
     const whoPaid = payers.filter(x => x.paid);
-    const whoNotPaid = payers.filter(x => !x.paid);
+    // Escludi gli assenti dall'incasso atteso e dalla lista dei non paganti
+    const eligible = payers.filter(x => x.eligibleForPayment);
+    const expected = costo * eligible.length;
+    const whoNotPaid = eligible.filter(x => !x.paid);
     const collected = whoPaid.length * costo;
     const d = toDate(a.data);
     const ds = isNaN(d) ? '' : d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' });
