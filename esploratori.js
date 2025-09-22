@@ -54,7 +54,6 @@ UI.renderScouts = function() {
       const t3 = scout.pv_traccia3?.done ? (fmt(scout.pv_traccia3.data) || '✓') : '';
       const specTot = Array.isArray(scout.specialita) ? scout.specialita.length : 0;
       const giglio = fmt(scout.pv_giglio_data) || '';
-      const trifoglio = (scout.pv_giglio_note || '').trim();
       const acts = this.state.activities || [];
       const pres = UI.getDedupedPresences ? UI.getDedupedPresences() : (this.state.presences || []);
       const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente').length;
@@ -72,7 +71,6 @@ UI.renderScouts = function() {
               ${label('T3', t3, 'teal-700')}
               ${label('Sp', String(specTot), 'rose-700')}
               ${label('G', giglio, 'indigo-700')}
-              ${label('Tr', trifoglio, 'cyan-700')}
               ${label('%', String(perc), 'emerald-700')}
             </div>
           </div>
