@@ -43,30 +43,58 @@ UI.renderScouts = function() {
     container: list,
     items: sortedScouts,
     batchSize: 200,
-    renderItem: (scout) => `
-      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-900"><a href="scout.html?id=${scout.id}" class="hover:underline">${scout.nome} ${scout.cognome}</a></h4>
-          <p class="text-sm text-gray-600">ID: ${scout.id}</p>
+    renderItem: (scout) => {
+      const toDate = (v) => (v && v.toDate) ? v.toDate() : (v ? new Date(v) : null);
+      const fmt = (v) => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' }) : ''; };
+      const label = (abbr, val, color) => `<span class="text-${color} font-medium">${abbr}</span> <span class="text-gray-800">${val || '-'}</span>`;
+      const vcp = scout.pv_vcp_cp || '';
+      const promessa = fmt(scout.pv_promessa) || '';
+      const t1 = scout.pv_traccia1?.done ? (fmt(scout.pv_traccia1.data) || '✓') : '';
+      const t2 = scout.pv_traccia2?.done ? (fmt(scout.pv_traccia2.data) || '✓') : '';
+      const t3 = scout.pv_traccia3?.done ? (fmt(scout.pv_traccia3.data) || '✓') : '';
+      const specTot = Array.isArray(scout.specialita) ? scout.specialita.length : 0;
+      const giglio = fmt(scout.pv_giglio_data) || '';
+      const trifoglio = (scout.pv_giglio_note || '').trim();
+      const acts = this.state.activities || [];
+      const pres = UI.getDedupedPresences ? UI.getDedupedPresences() : (this.state.presences || []);
+      const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente').length;
+      const perc = acts.length ? Math.round((presentCount / acts.length) * 100) : 0;
+
+      return `
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
+          <div class="flex-1">
+            <h4 class="font-medium text-gray-900"><a href="scout.html?id=${scout.id}" class="hover:underline">${scout.nome} ${scout.cognome}</a></h4>
+            <div class="text-sm flex flex-wrap gap-x-4 gap-y-1 mt-1">
+              ${label('CP', vcp, 'green-700')}
+              ${label('Pr', promessa, 'blue-700')}
+              ${label('T1', t1, 'amber-700')}
+              ${label('T2', t2, 'purple-700')}
+              ${label('T3', t3, 'teal-700')}
+              ${label('Sp', String(specTot), 'rose-700')}
+              ${label('G', giglio, 'indigo-700')}
+              ${label('Tr', trifoglio, 'cyan-700')}
+              ${label('%', String(perc), 'emerald-700')}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button 
+              onclick="UI.openEditScoutModal('${scout.id}')" 
+              class="p-2 text-gray-500 hover:text-green-600 rounded-full"
+              ${this.currentUser ? '' : 'disabled'}
+            >
+              ✏️
+            </button>
+            <button 
+              onclick="UI.confirmDeleteScout('${scout.id}')" 
+              class="p-2 text-gray-500 hover:text-red-600 rounded-full"
+              ${this.currentUser ? '' : 'disabled'}
+            >
+              🗑️
+            </button>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button 
-            onclick="UI.openEditScoutModal('${scout.id}')" 
-            class="p-2 text-gray-500 hover:text-green-600 rounded-full"
-            ${this.currentUser ? '' : 'disabled'}
-          >
-            ✏️
-          </button>
-          <button 
-            onclick="UI.confirmDeleteScout('${scout.id}')" 
-            class="p-2 text-gray-500 hover:text-red-600 rounded-full"
-            ${this.currentUser ? '' : 'disabled'}
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
-    `
+      `;
+    }
   });
 };
 
