@@ -152,12 +152,23 @@ class FirestoreAdapter {
   }
   
   async loadAll() {
+    const timers = { start: (typeof performance !== 'undefined' ? performance.now() : Date.now()) };
+    const timed = async (label, promise) => {
+      const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+      const res = await promise;
+      const t1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+      timers[label] = Math.round(t1 - t0);
+      return res;
+    };
     const [scoutsSnap, staffSnap, actsSnap, presSnap] = await Promise.all([
-      getDocs(this.cols.scouts),
-      getDocs(this.cols.staff),
-      getDocs(this.cols.activities),
-      getDocs(this.cols.presences)
+      timed('scouts', getDocs(this.cols.scouts)),
+      timed('staff', getDocs(this.cols.staff)),
+      timed('activities', getDocs(this.cols.activities)),
+      timed('presences', getDocs(this.cols.presences))
     ]);
+    const tEnd = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    timers.total = Math.round(tEnd - timers.start);
+    try { console.info('[Perf] Firestore loadAll ms:', timers); } catch {}
     
     return {
       scouts: scoutsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
@@ -314,6 +325,7 @@ const UI = {
     try {
       DATA.useFirestore();
       console.log('UI.init: Initializing...');
+      this.logNetworkInfo();
       
       // Carica header e modali condivisi
       await this.loadSharedComponents();
@@ -348,7 +360,10 @@ const UI = {
           this.qs('#loggedInUserEmail').textContent = user.email;
           this.qs('#logoutButton').style.display = 'block';
           this.closeModal('loginModal');
+          const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
           this.state = await DATA.loadAll();
+          const t1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          try { console.info('[Perf] DATA.loadAll total ms:', Math.round(t1 - t0)); } catch {}
           this.rebuildPresenceIndex();
           // Selezione staff: auto-seleziona se email corrisponde, altrimenti apri modale
           const match = (this.state.staff || []).find(s => (s.email || '').toLowerCase() === (user.email || '').toLowerCase());
@@ -358,7 +373,10 @@ const UI = {
             this.renderStaffSelectionList();
             this.showModal('staffSelectionModal');
           }
+          const r0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
           this.renderCurrentPage();
+          const r1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          try { console.info('[Perf] renderCurrentPage ms:', Math.round(r1 - r0)); } catch {}
         } else {
           this.qs('#loggedInUserEmail').textContent = '';
           this.qs('#logoutButton').style.display = 'none';
@@ -368,6 +386,8 @@ const UI = {
 
       // Install prompt A2HS discreto
       this.setupInstallPrompt();
+      // Avvia una sonda di connettività non bloccante
+      this.runConnectivityProbe();
       
     } catch (error) {
       console.error('UI.init error:', error);
@@ -621,6 +641,43 @@ const UI = {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => fn.apply(this, args), wait);
     };
+  },
+
+  logNetworkInfo() {
+    try {
+      const nav = navigator;
+      const c = nav && nav.connection ? nav.connection : null;
+      if (c) {
+        console.info('[Net] connection', {
+          effectiveType: c.effectiveType,
+          rtt: c.rtt,
+          downlink: c.downlink,
+          saveData: c.saveData
+        });
+      }
+    } catch {}
+  },
+
+  async runConnectivityProbe() {
+    try {
+      const t = async (label, url) => {
+        const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          const t1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          console.info('[Net] probe', label, Math.round(t1 - t0) + 'ms', res.status);
+        } catch (e) {
+          const t1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          console.warn('[Net] probe FAILED', label, Math.round(t1 - t0) + 'ms', String(e));
+        }
+      };
+      // Stesso dominio (indicativo di lentezza locale/SW)
+      t('same-origin manifest', 'manifest.json');
+      // Esterno (indicativo di rete generale)
+      t('gstatic 204', 'https://www.gstatic.com/generate_204');
+      // Firebase Auth JS (CDN)
+      t('firebase-auth.js', 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+    } catch {}
   },
 
   async renderInBatches({ container, items, renderItem, batchSize = 100 }) {
