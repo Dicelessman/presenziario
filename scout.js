@@ -99,6 +99,9 @@ UI.renderScoutPage = async function() {
   this.setCheckDate('pv_im_33', s.pv_im_33);
   this.setCheckDate('pv_im_34', s.pv_im_34);
   setVal('#pv_note', s.pv_note);
+  setVal('#pv_traccia1_note', s.pv_traccia1_note);
+  setVal('#pv_traccia2_note', s.pv_traccia2_note);
+  setVal('#pv_traccia3_note', s.pv_traccia3_note);
 
   // Carica specialità multiple
   this.loadSpecialita(s.specialita || []);
@@ -279,6 +282,9 @@ UI.collectForm = function() {
     pv_re_31: cd('pv_re_31'), pv_re_32: cd('pv_re_32'), pv_re_33: cd('pv_re_33'), pv_re_34: cd('pv_re_34'),
     pv_im_31: cd('pv_im_31'), pv_im_32: cd('pv_im_32'), pv_im_33: cd('pv_im_33'), pv_im_34: cd('pv_im_34'),
     pv_note: get('#pv_note'),
+    pv_traccia1_note: get('#pv_traccia1_note'),
+    pv_traccia2_note: get('#pv_traccia2_note'),
+    pv_traccia3_note: get('#pv_traccia3_note'),
     specialita: this.collectSpecialita(),
     ev_ce1: pair('#ev_ce1'), ev_ce2: pair('#ev_ce2'), ev_ce3: pair('#ev_ce3'), ev_ce4: pair('#ev_ce4'),
     ev_ccp: pair('#ev_ccp'), ev_tc1: pair('#ev_tc1'), ev_tc2: pair('#ev_tc2'), ev_tc3: pair('#ev_tc3'), ev_tc4: pair('#ev_tc4'),
