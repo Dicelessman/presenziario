@@ -177,11 +177,20 @@ UI.renderPresenceTable = function() {
   if (this._scoutSortDir === 'desc') sortedScouts.reverse();
 
   sortedScouts.forEach(s => {
-    const totalActs = (this.state.activities || []).length;
-    const presentCount = this.getDedupedPresences().filter(p => p.esploratoreId === s.id && p.stato === 'Presente').length;
-    const perc = totalActs ? Math.round((presentCount / totalActs) * 100) : 0;
+    // Calcola il set di attività considerate: tutte le già svolte (< oggi) + la prossima in programma
+    const today = new Date(); today.setHours(0,0,0,0);
+    const pastIds = acts.filter(a => {
+      const ad = (a.data && a.data.toDate) ? a.data.toDate() : new Date(a.data);
+      const aday = new Date(ad); aday.setHours(0,0,0,0);
+      return aday < today;
+    }).map(a => a.id);
+    const consideredIds = nextActivityId ? [...pastIds, nextActivityId] : pastIds;
+
+    const totalActsConsidered = consideredIds.length;
+    const presentCount = this.getDedupedPresences().filter(p => p.esploratoreId === s.id && p.stato === 'Presente' && consideredIds.includes(p.attivitaId)).length;
+    const perc = totalActsConsidered ? Math.round((presentCount / totalActsConsidered) * 100) : 0;
     let row = `<tr><td class=\"p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0\">${s.nome} ${s.cognome}
-      <div class=\"text-xs font-normal text-gray-500\">${presentCount} / ${totalActs} (${perc}%)</div>
+      <div class=\"text-xs font-normal text-gray-500\">${presentCount} / ${totalActsConsidered} (${perc}%)</div>
     </td>`;
 
     acts.forEach(a => {
