@@ -56,8 +56,19 @@ UI.renderScouts = function() {
       const giglio = fmt(scout.pv_giglio_data) || '';
       const acts = this.state.activities || [];
       const pres = UI.getDedupedPresences ? UI.getDedupedPresences() : (this.state.presences || []);
-      const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente').length;
-      const perc = acts.length ? Math.round((presentCount / acts.length) * 100) : 0;
+      // Considera tutte le attività già svolte + la prossima in programma
+      const today = new Date(); today.setHours(0,0,0,0);
+      let nextActivityId = null;
+      const pastIds = acts.filter(a => {
+        const ad = (a.data && a.data.toDate) ? a.data.toDate() : new Date(a.data);
+        const aday = new Date(ad); aday.setHours(0,0,0,0);
+        if (nextActivityId === null && aday >= today) { nextActivityId = a.id; }
+        return aday < today;
+      }).map(a => a.id);
+      const consideredIds = nextActivityId ? [...pastIds, nextActivityId] : pastIds;
+
+      const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente' && consideredIds.includes(p.attivitaId)).length;
+      const perc = consideredIds.length ? Math.round((presentCount / consideredIds.length) * 100) : 0;
 
       return `
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
