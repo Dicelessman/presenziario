@@ -357,7 +357,8 @@ const UI = {
       onAuthStateChanged(DATA.adapter.auth, async (user) => {
         this.currentUser = user;
         if (user) {
-          this.qs('#loggedInUserEmail').textContent = user.email;
+          const emailEl = this.qs('#loggedInUserEmail');
+          if (emailEl) { emailEl.textContent = ''; try { emailEl.style.display = 'none'; } catch {} }
           this.qs('#logoutButton').style.display = 'block';
           this.closeModal('loginModal');
           const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -378,7 +379,8 @@ const UI = {
           const r1 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
           try { console.info('[Perf] renderCurrentPage ms:', Math.round(r1 - r0)); } catch {}
         } else {
-          this.qs('#loggedInUserEmail').textContent = '';
+          const emailEl = this.qs('#loggedInUserEmail');
+          if (emailEl) { emailEl.textContent = ''; try { emailEl.style.display = 'none'; } catch {} }
           this.qs('#logoutButton').style.display = 'none';
           this.showModal('loginModal');
         }
