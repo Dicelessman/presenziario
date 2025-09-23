@@ -186,8 +186,13 @@ UI.renderPresenceTable = function() {
     }).map(a => a.id);
     const consideredIds = nextActivityId ? [...pastIds, nextActivityId] : pastIds;
 
-    const totalActsConsidered = consideredIds.length;
-    const presentCount = this.getDedupedPresences().filter(p => p.esploratoreId === s.id && p.stato === 'Presente' && consideredIds.includes(p.attivitaId)).length;
+    const allPresences = this.getDedupedPresences();
+    const validActIds = consideredIds.filter(aid => {
+      const pr = allPresences.find(p => p.esploratoreId === s.id && p.attivitaId === aid);
+      return pr && (pr.stato === 'Presente' || pr.stato === 'Assente');
+    });
+    const totalActsConsidered = validActIds.length;
+    const presentCount = allPresences.filter(p => p.esploratoreId === s.id && p.stato === 'Presente' && validActIds.includes(p.attivitaId)).length;
     const perc = totalActsConsidered ? Math.round((presentCount / totalActsConsidered) * 100) : 0;
     let row = `<tr><td class=\"p-4 border-r-2 border-gray-200 bg-gray-50 font-semibold text-left sticky left-0\">${s.nome} ${s.cognome}
       <div class=\"text-xs font-normal text-gray-500\">${presentCount} / ${totalActsConsidered} (${perc}%)</div>

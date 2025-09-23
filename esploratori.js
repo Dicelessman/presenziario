@@ -67,8 +67,12 @@ UI.renderScouts = function() {
       }).map(a => a.id);
       const consideredIds = nextActivityId ? [...pastIds, nextActivityId] : pastIds;
 
-      const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente' && consideredIds.includes(p.attivitaId)).length;
-      const perc = consideredIds.length ? Math.round((presentCount / consideredIds.length) * 100) : 0;
+      const validActIds = consideredIds.filter(aid => {
+        const pr = pres.find(p => p.esploratoreId === scout.id && p.attivitaId === aid);
+        return pr && (pr.stato === 'Presente' || pr.stato === 'Assente');
+      });
+      const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente' && validActIds.includes(p.attivitaId)).length;
+      const perc = validActIds.length ? Math.round((presentCount / validActIds.length) * 100) : 0;
 
       return `
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
