@@ -321,22 +321,6 @@ const UI = {
   qs(selector) { return document.querySelector(selector); },
   qsa(selector) { return document.querySelectorAll(selector); },
   
-  applyThemeFromStorage() {
-    try {
-      const saved = localStorage.getItem('theme') || '';
-      const root = document.documentElement;
-      root.classList.toggle('theme-dark', saved === 'dark');
-      const btn = this.qs('#themeToggleBtn');
-      if (btn) btn.textContent = saved === 'dark' ? 'Tema Chiaro' : 'Tema Scuro';
-    } catch {}
-  },
-  toggleTheme() {
-    const root = document.documentElement;
-    const isDark = root.classList.toggle('theme-dark');
-    try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch {}
-    const btn = this.qs('#themeToggleBtn');
-    if (btn) btn.textContent = isDark ? 'Tema Chiaro' : 'Tema Scuro';
-  },
   
   async init() {
     try {
@@ -346,14 +330,6 @@ const UI = {
       
       // Carica header e modali condivisi
       await this.loadSharedComponents();
-
-      // Applica tema salvato e wiring toggle
-      this.applyThemeFromStorage();
-      const themeBtn = this.qs('#themeToggleBtn');
-      if (themeBtn && !themeBtn._bound) {
-        themeBtn._bound = true;
-        themeBtn.addEventListener('click', () => this.toggleTheme());
-      }
 
       // Prefetch pagine usate spesso
       try {
@@ -447,13 +423,6 @@ const UI = {
         console.error('Logout error:', error);
       }
     });
-    
-    // Toggle tema se presente (fallback nel caso venga ricaricato header dopo)
-    const themeBtn = this.qs('#themeToggleBtn');
-    if (themeBtn && !themeBtn._bound) {
-      themeBtn._bound = true;
-      themeBtn.addEventListener('click', () => this.toggleTheme());
-    }
     
     // Hamburger menu
     const hamburgerIcon = this.qs('.hamburger-icon');
