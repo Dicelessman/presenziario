@@ -50,8 +50,8 @@ UI.renderScouts = function() {
       
       // Solo campi valorizzati
       const fields = [];
-      if (scout.pv_vcp_cp) fields.push(label('CP', '', 'green-700'));
-      if (scout.pv_promessa) fields.push(label('Pr', '', 'blue-700'));
+     
+      if (scout.pv_promessa) fields.push(label('P', '', 'blue-700'));
       if (scout.pv_traccia1?.done) fields.push(label('T1', '', 'amber-700'));
       if (scout.pv_traccia2?.done) fields.push(label('T2', '', 'purple-700'));
       if (scout.pv_traccia3?.done) fields.push(label('T3', '', 'teal-700'));
@@ -60,6 +60,9 @@ UI.renderScouts = function() {
       if (specTot > 0) fields.push(label('Sp', String(specTot), 'rose-700'));
       
       if (scout.pv_giglio_data) fields.push(label('GT', '', 'indigo-700'));
+     
+      // CP/VCP
+      if (scout.pv_vcp_cp) fields.push(label('CP', '', 'green-700'));
       
       // Calcolo percentuale presenze
       const acts = this.state.activities || [];
