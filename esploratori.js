@@ -56,7 +56,17 @@ UI.renderScouts = function() {
       if (scout.pv_traccia2?.done) fields.push(label('T2', '', 'purple-700'));
       if (scout.pv_traccia3?.done) fields.push(label('T3', '', 'teal-700'));
       
-      const specTot = Array.isArray(scout.specialita) ? scout.specialita.length : 0;
+      // Conta solo le specialità che hanno almeno una data di conseguimento valorizzata
+      let specTot = 0;
+      if (Array.isArray(scout.specialita)) {
+        specTot = scout.specialita.filter(spec => {
+          // Una specialità è considerata conseguita se ha almeno una data valorizzata
+          return (spec.p1?.data && spec.p1.data.trim()) || 
+                 (spec.p2?.data && spec.p2.data.trim()) || 
+                 (spec.p3?.data && spec.p3.data.trim()) || 
+                 (spec.cr?.data && spec.cr.data.trim());
+        }).length;
+      }
       if (specTot > 0) fields.push(label('Sp', String(specTot), 'rose-700'));
       
       if (scout.pv_giglio_data) fields.push(label('GT', '', 'indigo-700'));
