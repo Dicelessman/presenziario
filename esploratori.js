@@ -46,17 +46,24 @@ UI.renderScouts = function() {
     renderItem: (scout) => {
       const toDate = (v) => (v && v.toDate) ? v.toDate() : (v ? new Date(v) : null);
       const fmt = (v) => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' }) : ''; };
-      const label = (abbr, val, color) => `<span class="text-${color} font-medium">${abbr}</span> <span class="text-gray-800">${val || '-'}</span>`;
-      const vcp = scout.pv_vcp_cp || '';
-      const promessa = fmt(scout.pv_promessa) || '';
-      const t1 = scout.pv_traccia1?.done ? (fmt(scout.pv_traccia1.data) || '✓') : '';
-      const t2 = scout.pv_traccia2?.done ? (fmt(scout.pv_traccia2.data) || '✓') : '';
-      const t3 = scout.pv_traccia3?.done ? (fmt(scout.pv_traccia3.data) || '✓') : '';
+      const label = (abbr, val, color) => `<span class="text-${color} font-medium">${abbr}</span>`;
+      
+      // Solo campi valorizzati
+      const fields = [];
+      if (scout.pv_vcp_cp) fields.push(label('CP', '', 'green-700'));
+      if (scout.pv_promessa) fields.push(label('Pr', '', 'blue-700'));
+      if (scout.pv_traccia1?.done) fields.push(label('T1', '', 'amber-700'));
+      if (scout.pv_traccia2?.done) fields.push(label('T2', '', 'purple-700'));
+      if (scout.pv_traccia3?.done) fields.push(label('T3', '', 'teal-700'));
+      
       const specTot = Array.isArray(scout.specialita) ? scout.specialita.length : 0;
-      const giglio = fmt(scout.pv_giglio_data) || '';
+      if (specTot > 0) fields.push(label('Sp', '', 'rose-700'));
+      
+      if (scout.pv_giglio_data) fields.push(label('GT', '', 'indigo-700'));
+      
+      // Calcolo percentuale presenze
       const acts = this.state.activities || [];
       const pres = UI.getDedupedPresences ? UI.getDedupedPresences() : (this.state.presences || []);
-      // Considera tutte le attività già svolte + la prossima in programma
       const today = new Date(); today.setHours(0,0,0,0);
       let nextActivityId = null;
       const pastIds = acts.filter(a => {
@@ -73,20 +80,15 @@ UI.renderScouts = function() {
       });
       const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente' && validActIds.includes(p.attivitaId)).length;
       const perc = validActIds.length ? Math.round((presentCount / validActIds.length) * 100) : 0;
+      
+      if (perc > 0) fields.push(label('Pr', '', 'emerald-700'));
 
       return `
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
           <div class="flex-1">
             <h4 class="font-medium text-gray-900"><a href="scout.html?id=${scout.id}" class="hover:underline">${scout.nome} ${scout.cognome}</a></h4>
             <div class="text-sm flex flex-wrap gap-x-4 gap-y-1 mt-1">
-              ${label('CP', vcp, 'green-700')}
-              ${label('Pr', promessa, 'blue-700')}
-              ${label('T1', t1, 'amber-700')}
-              ${label('T2', t2, 'purple-700')}
-              ${label('T3', t3, 'teal-700')}
-              ${label('Sp', String(specTot), 'rose-700')}
-              ${label('G', giglio, 'indigo-700')}
-              ${label('%', String(perc), 'emerald-700')}
+              ${fields.join('')}
             </div>
           </div>
           <div class="flex gap-2">
