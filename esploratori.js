@@ -61,8 +61,8 @@ UI.renderScouts = function() {
       
       if (scout.pv_giglio_data) fields.push(label('GT', '', 'indigo-700'));
      
-      // CP/VCP
-      if (scout.pv_vcp_cp) fields.push(label('CP', '', 'green-700'));
+      // CP/VCP - solo il valore
+      if (scout.pv_vcp_cp) fields.push(`<span class="text-green-700 font-medium">${scout.pv_vcp_cp}</span>`);
       
       // Calcolo percentuale presenze
       const acts = this.state.activities || [];
