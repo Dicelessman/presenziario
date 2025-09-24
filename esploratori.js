@@ -46,7 +46,7 @@ UI.renderScouts = function() {
     renderItem: (scout) => {
       const toDate = (v) => (v && v.toDate) ? v.toDate() : (v ? new Date(v) : null);
       const fmt = (v) => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' }) : ''; };
-      const label = (abbr, val, color) => `<span class="text-${color} font-medium">${abbr}</span>`;
+      const label = (abbr, val, color) => `<span class="text-${color} font-medium">${abbr}</span> <span class="text-gray-800">${val || '-'}</span>`;
       
       // Solo campi valorizzati
       const fields = [];
@@ -57,7 +57,7 @@ UI.renderScouts = function() {
       if (scout.pv_traccia3?.done) fields.push(label('T3', '', 'teal-700'));
       
       const specTot = Array.isArray(scout.specialita) ? scout.specialita.length : 0;
-      if (specTot > 0) fields.push(label('Sp', '', 'rose-700'));
+      if (specTot > 0) fields.push(label('Sp', String(specTot), 'rose-700'));
       
       if (scout.pv_giglio_data) fields.push(label('GT', '', 'indigo-700'));
       
@@ -81,7 +81,7 @@ UI.renderScouts = function() {
       const presentCount = pres.filter(p => p.esploratoreId === scout.id && p.stato === 'Presente' && validActIds.includes(p.attivitaId)).length;
       const perc = validActIds.length ? Math.round((presentCount / validActIds.length) * 100) : 0;
       
-      if (perc > 0) fields.push(label('Pr', '', 'emerald-700'));
+      if (perc > 0) fields.push(label('Pr', String(perc), 'emerald-700'));
 
       return `
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
