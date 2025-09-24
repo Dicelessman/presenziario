@@ -144,10 +144,10 @@ UI.renderScoutPage = async function() {
     
   // Gestione specialità multiple
   this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
-  
-  // Inizializza gestione pattuglie
-  this.initPattugliaManagement();
   }
+  
+  // Inizializza gestione pattuglie (sempre, non solo se il form è bound)
+  this.initPattugliaManagement();
 };
 
 UI.loadSpecialita = function(specialitaArray) {
@@ -304,6 +304,7 @@ UI.collectForm = function() {
 
 // ============== Gestione Pattuglie ==============
 UI.initPattugliaManagement = function() {
+  console.log('Inizializzazione gestione pattuglie...');
   // Carica le pattuglie dal localStorage o usa quelle di default
   this.pattuglie = JSON.parse(localStorage.getItem('pattuglie') || '["Aironi", "Marmotte"]');
   this.updatePattugliaSelect();
@@ -346,12 +347,18 @@ UI.updatePattugliaSelect = function() {
 };
 
 UI.openPattugliaModal = function() {
+  console.log('Apertura modal pattuglie...');
   this.renderPattugliaList();
-  this.qs('#pattugliaModal').classList.remove('hidden');
+  const modal = this.qs('#pattugliaModal');
+  console.log('Modal trovato:', modal);
+  if (modal) {
+    modal.classList.add('show');
+    console.log('Classe show aggiunta');
+  }
 };
 
 UI.closePattugliaModal = function() {
-  this.qs('#pattugliaModal').classList.add('hidden');
+  this.qs('#pattugliaModal').classList.remove('show');
   this.qs('#newPattugliaInput').value = '';
 };
 
