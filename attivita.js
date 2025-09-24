@@ -34,7 +34,6 @@ UI.renderActivityPage = async function() {
   if (metaEl) metaEl.textContent = `${ds}${activity.costo ? ` — Costo: €${activity.costo}` : ''}`;
 
   // Prepara indici
-  const scoutsById = new Map((this.state.scouts || []).map(s => [s.id, s]));
   const presenze = this.getDedupedPresences().filter(p => p.attivitaId === activityId);
 
   // Utility: format DOB
@@ -65,23 +64,29 @@ UI.renderActivityPage = async function() {
     }
   });
 
-  // Render liste
+  // Render liste e contatori
   const mkLi = (t) => `<li>${t}</li>`;
   const presentiList = this.qs('#presentiList');
   const assentiList = this.qs('#assentiList');
   const pagamentiList = this.qs('#pagamentiList');
+  const presentiCount = this.qs('#presentiCount');
+  const assentiCount = this.qs('#assentiCount');
+  const pagamentiCount = this.qs('#pagamentiCount');
 
   if (presentiList) presentiList.innerHTML = presenti
     .sort((a,b)=>a.nome.localeCompare(b.nome))
     .map(x => mkLi(`${x.nome}${x.dob ? ' — ' + x.dob : ''}`)).join('');
+  if (presentiCount) presentiCount.textContent = `${presenti.length} elementi`;
 
   if (assentiList) assentiList.innerHTML = assenti
     .sort((a,b)=>a.nome.localeCompare(b.nome))
     .map(x => mkLi(`${x.nome}${x.dob ? ' — ' + x.dob : ''}`)).join('');
+  if (assentiCount) assentiCount.textContent = `${assenti.length} elementi`;
 
   if (pagamentiList) pagamentiList.innerHTML = pagamenti
     .sort((a,b)=>a.nome.localeCompare(b.nome))
     .map(x => mkLi(`${x.nome} — ${x.metodo}`)).join('');
+  if (pagamentiCount) pagamentiCount.textContent = `${pagamenti.length} pagamenti`;
 
   // Bottoni copia
   const copy = async (text) => {
@@ -90,7 +95,6 @@ UI.renderActivityPage = async function() {
       alert('Copiato negli appunti');
     } catch (e) {
       console.error('Clipboard error:', e);
-      // fallback: selezione testo
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);

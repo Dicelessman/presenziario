@@ -16,29 +16,38 @@
     <main class="p-6">
       <div id="shared-modals"></div>
 
-      <section>
-        <h2 id="activityTitle" class="text-2xl font-semibold text-gray-700 mb-2">Attività</h2>
+      <section class="tab-content active">
+        <h2 id="activityTitle" class="text-2xl font-semibold text-gray-700 mb-1">Attività</h2>
         <p id="activityMeta" class="text-gray-600 mb-4"></p>
 
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-5">
           <button id="copyPresentiBtn" class="btn-primary">Copia Presenti</button>
           <button id="copyAssentiBtn" class="btn-secondary">Copia Assenti</button>
           <button id="copyPagamentiBtn" class="btn-secondary">Copia Pagamenti</button>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Presenti</h3>
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-baseline justify-between mb-2">
+              <h3 class="text-lg font-semibold text-gray-700">Presenti</h3>
+              <span id="presentiCount" class="text-sm text-gray-500"></span>
+            </div>
             <ul id="presentiList" class="list-disc pl-5 text-gray-800"></ul>
           </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Assenti</h3>
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-baseline justify-between mb-2">
+              <h3 class="text-lg font-semibold text-gray-700">Assenti</h3>
+              <span id="assentiCount" class="text-sm text-gray-500"></span>
+            </div>
             <ul id="assentiList" class="list-disc pl-5 text-gray-800"></ul>
           </div>
         </div>
 
-        <div class="mt-6">
-          <h3 class="text-lg font-semibold text-gray-700 mb-2">Pagamenti</h3>
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-4">
+          <div class="flex items-baseline justify-between mb-2">
+            <h3 class="text-lg font-semibold text-gray-700">Pagamenti</h3>
+            <span id="pagamentiCount" class="text-sm text-gray-500"></span>
+          </div>
           <ul id="pagamentiList" class="list-disc pl-5 text-gray-800"></ul>
         </div>
       </section>
