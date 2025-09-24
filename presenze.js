@@ -154,8 +154,9 @@ UI.renderPresenceTable = function() {
     const isNext = a.id === nextActivityId;
     const thDateClasses = isNext ? 'bg-green-900' : 'bg-green-800';
     const thNameClasses = isNext ? 'bg-green-900' : 'bg-green-800';
-    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thDateClasses} text-white font-semibold sticky top-0 border-r border-white/40">${displayDate}${isNext ? ' <span class=\"text-xs\">(Prossima)</span>' : ''}</th>`);
-    thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thNameClasses} text-white font-semibold sticky top-0 border-r border-white/40">${a.tipo}<div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
+    const link = `attivita.html?id=${a.id}`;
+    thDates.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thDateClasses} text-white font-semibold sticky top-0 border-r border-white/40"><a href="${link}" class="text-white hover:underline" title="Apri dettaglio attività">${displayDate}${isNext ? ' <span class=\"text-xs\">(Prossima)</span>' : ''}</a></th>`);
+    thNames.insertAdjacentHTML('beforeend', `<th class="p-2 border-b-2 border-gray-200 ${thNameClasses} text-white font-semibold sticky top-0 border-r border-white/40"><a href="${link}" class="text-white hover:underline" title="Apri dettaglio attività">${a.tipo}</a><div class="text-xs font-normal text-white/90">${perc}% (${presentCount}/${totalScouts})</div></th>`);
   });
 
   // Sort handler su intestazione Esploratore

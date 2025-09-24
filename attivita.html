@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dettaglio Attività</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+  <div id="app" class="max-w-4xl mx-auto w-full bg-white shadow-lg rounded-xl overflow-hidden my-4">
+
+    <div id="shared-header"></div>
+
+    <main class="p-6">
+      <div id="shared-modals"></div>
+
+      <section>
+        <h2 id="activityTitle" class="text-2xl font-semibold text-gray-700 mb-2">Attività</h2>
+        <p id="activityMeta" class="text-gray-600 mb-4"></p>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button id="copyPresentiBtn" class="btn-primary">Copia Presenti</button>
+          <button id="copyAssentiBtn" class="btn-secondary">Copia Assenti</button>
+          <button id="copyPagamentiBtn" class="btn-secondary">Copia Pagamenti</button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Presenti</h3>
+            <ul id="presentiList" class="list-disc pl-5 text-gray-800"></ul>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Assenti</h3>
+            <ul id="assentiList" class="list-disc pl-5 text-gray-800"></ul>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Pagamenti</h3>
+          <ul id="pagamentiList" class="list-disc pl-5 text-gray-800"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="shared.js"></script>
+  <script type="module" src="attivita.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrato:", reg.scope))
+        .catch(err => console.error("SW registration failed:", err));
+    }
+  </script>
+</body>
+</html>
