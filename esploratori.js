@@ -50,6 +50,12 @@ UI.renderScouts = function() {
       
       // Solo campi valorizzati
       const fields = [];
+      
+      // Pattuglia come prima informazione (prime tre lettere)
+      if (scout.pv_pattuglia && scout.pv_pattuglia.trim()) {
+        const pattugliaShort = scout.pv_pattuglia.trim().substring(0, 3).toUpperCase();
+        fields.push(`<span class="text-orange-600 font-bold">${pattugliaShort}</span>`);
+      }
      
       if (scout.pv_promessa) fields.push(label('P', '', 'blue-700'));
       if (scout.pv_traccia1?.done) fields.push(label('T1', '', 'amber-700'));
