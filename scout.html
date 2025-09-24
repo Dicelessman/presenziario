@@ -19,6 +19,38 @@
     <div id="shared-header"></div>
     <main class="p-6 space-y-6">
       <div id="shared-modals"></div>
+      
+      <!-- Modal per gestione pattuglie -->
+      <div id="pattugliaModal" class="modal hidden">
+        <div class="modal-content">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Gestione Pattuglie</h3>
+            <button type="button" id="closePattugliaModal" class="text-gray-500 hover:text-gray-700">✕</button>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm mb-2">Aggiungi nuova pattuglia</label>
+              <div class="flex gap-2">
+                <input id="newPattugliaInput" type="text" class="input flex-1" placeholder="Nome pattuglia..." />
+                <button type="button" id="addPattugliaBtn" class="btn-primary">Aggiungi</button>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm mb-2">Pattuglie esistenti</label>
+              <div id="pattugliaList" class="space-y-2">
+                <!-- Le pattuglie verranno caricate dinamicamente -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-end gap-2 mt-6">
+            <button type="button" id="cancelPattugliaBtn" class="btn-secondary">Annulla</button>
+            <button type="button" id="savePattugliaBtn" class="btn-primary">Salva</button>
+          </div>
+        </div>
+      </div>
 
       <div class="flex items-center justify-between">
         <h2 id="scoutTitle" class="text-2xl font-semibold text-gray-700">Scheda Esploratore</h2>
@@ -81,6 +113,19 @@
             <div class="md:col-span-2 grid md:grid-cols-2 gap-4">
               <div><label class="block text-sm">Giglio/Trifoglio (data)</label><input id="pv_giglio_data" type="date" class="input" /></div>
               <div><label class="block text-sm">Note</label><input id="pv_giglio_note" class="input" /></div>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm mb-2">Pattuglia</label>
+              <div class="flex gap-2 items-center">
+                <select id="pv_pattuglia" class="input flex-1">
+                  <option value="">Seleziona pattuglia...</option>
+                  <option value="Aironi">Aironi</option>
+                  <option value="Marmotte">Marmotte</option>
+                </select>
+                <button type="button" id="managePattugliaBtn" class="btn-secondary px-3 py-2" title="Gestisci pattuglie">
+                  ⚙️
+                </button>
+              </div>
             </div>
           </div>
 

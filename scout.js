@@ -56,6 +56,7 @@ UI.renderScoutPage = async function() {
   if (vcp) vcp.checked = true;
   setVal('#pv_giglio_data', this.toYyyyMmDd(s.pv_giglio_data));
   setVal('#pv_giglio_note', s.pv_giglio_note);
+  setVal('#pv_pattuglia', s.pv_pattuglia);
 
   // Traccia checkboxes e date
   this.setCheckDate('pv_traccia1', s.pv_traccia1);
@@ -141,8 +142,11 @@ UI.renderScoutPage = async function() {
     });
     this.qs('#btnAnnulla')?.addEventListener('click', () => history.back());
     
-    // Gestione specialità multiple
-    this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
+  // Gestione specialità multiple
+  this.qs('#addSpecialitaBtn')?.addEventListener('click', () => this.addSpecialita());
+  
+  // Inizializza gestione pattuglie
+  this.initPattugliaManagement();
   }
 };
 
@@ -272,6 +276,7 @@ UI.collectForm = function() {
     pv_vcp_cp: this.qs('input[name="pv_vcp_cp"]:checked')?.value || '',
     pv_giglio_data: get('#pv_giglio_data') || null,
     pv_giglio_note: get('#pv_giglio_note'),
+    pv_pattuglia: get('#pv_pattuglia'),
     pv_io_11: cd('pv_io_11'), pv_io_12: cd('pv_io_12'), pv_io_13: cd('pv_io_13'), pv_io_14: cd('pv_io_14'),
     pv_re_11: cd('pv_re_11'), pv_re_12: cd('pv_re_12'), pv_re_13: cd('pv_re_13'), pv_re_14: cd('pv_re_14'),
     pv_im_11: cd('pv_im_11'), pv_im_12: cd('pv_im_12'), pv_im_13: cd('pv_im_13'), pv_im_14: cd('pv_im_14'),
@@ -295,6 +300,133 @@ UI.collectForm = function() {
     doc_iscr: get('#doc_iscr') || null, doc_san: get('#doc_san') || null,
     doc_priv: get('#doc_priv') || null, doc_note: get('#doc_note'),
   };
+};
+
+// ============== Gestione Pattuglie ==============
+UI.initPattugliaManagement = function() {
+  // Carica le pattuglie dal localStorage o usa quelle di default
+  this.pattuglie = JSON.parse(localStorage.getItem('pattuglie') || '["Aironi", "Marmotte"]');
+  this.updatePattugliaSelect();
+  
+  // Event listeners per il modal
+  this.qs('#managePattugliaBtn')?.addEventListener('click', () => this.openPattugliaModal());
+  this.qs('#closePattugliaModal')?.addEventListener('click', () => this.closePattugliaModal());
+  this.qs('#cancelPattugliaBtn')?.addEventListener('click', () => this.closePattugliaModal());
+  this.qs('#savePattugliaBtn')?.addEventListener('click', () => this.savePattuglie());
+  this.qs('#addPattugliaBtn')?.addEventListener('click', () => this.addPattuglia());
+  
+  // Chiudi modal cliccando fuori
+  this.qs('#pattugliaModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'pattugliaModal') this.closePattugliaModal();
+  });
+};
+
+UI.updatePattugliaSelect = function() {
+  const select = this.qs('#pv_pattuglia');
+  if (!select) return;
+  
+  // Salva il valore attuale
+  const currentValue = select.value;
+  
+  // Pulisce le opzioni (mantiene la prima "Seleziona...")
+  select.innerHTML = '<option value="">Seleziona pattuglia...</option>';
+  
+  // Aggiunge le pattuglie
+  this.pattuglie.forEach(pattuglia => {
+    const option = document.createElement('option');
+    option.value = pattuglia;
+    option.textContent = pattuglia;
+    select.appendChild(option);
+  });
+  
+  // Ripristina il valore selezionato
+  if (currentValue && this.pattuglie.includes(currentValue)) {
+    select.value = currentValue;
+  }
+};
+
+UI.openPattugliaModal = function() {
+  this.renderPattugliaList();
+  this.qs('#pattugliaModal').classList.remove('hidden');
+};
+
+UI.closePattugliaModal = function() {
+  this.qs('#pattugliaModal').classList.add('hidden');
+  this.qs('#newPattugliaInput').value = '';
+};
+
+UI.renderPattugliaList = function() {
+  const container = this.qs('#pattugliaList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  this.pattuglie.forEach((pattuglia, index) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center justify-between p-2 bg-gray-50 rounded border';
+    div.innerHTML = `
+      <input type="text" value="${pattuglia}" class="input flex-1 mr-2" data-index="${index}" />
+      <button type="button" class="btn-secondary px-2 py-1 text-red-600 hover:text-red-800" onclick="UI.removePattuglia(${index})">
+        🗑️
+      </button>
+    `;
+    container.appendChild(div);
+  });
+};
+
+UI.addPattuglia = function() {
+  const input = this.qs('#newPattugliaInput');
+  const nome = input.value.trim();
+  
+  if (!nome) {
+    alert('Inserisci un nome per la pattuglia');
+    return;
+  }
+  
+  if (this.pattuglie.includes(nome)) {
+    alert('Questa pattuglia esiste già');
+    return;
+  }
+  
+  this.pattuglie.push(nome);
+  this.renderPattugliaList();
+  input.value = '';
+};
+
+UI.removePattuglia = function(index) {
+  if (this.pattuglie.length <= 1) {
+    alert('Deve rimanere almeno una pattuglia');
+    return;
+  }
+  
+  if (confirm('Sei sicuro di voler rimuovere questa pattuglia?')) {
+    this.pattuglie.splice(index, 1);
+    this.renderPattugliaList();
+  }
+};
+
+UI.savePattuglie = function() {
+  // Aggiorna le pattuglie con i valori modificati
+  const inputs = this.qs('#pattugliaList').querySelectorAll('input[type="text"]');
+  const newPattuglie = [];
+  
+  inputs.forEach(input => {
+    const value = input.value.trim();
+    if (value && !newPattuglie.includes(value)) {
+      newPattuglie.push(value);
+    }
+  });
+  
+  if (newPattuglie.length === 0) {
+    alert('Deve rimanere almeno una pattuglia');
+    return;
+  }
+  
+  this.pattuglie = newPattuglie;
+  localStorage.setItem('pattuglie', JSON.stringify(this.pattuglie));
+  this.updatePattugliaSelect();
+  this.closePattugliaModal();
+  alert('Pattuglie salvate con successo!');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
